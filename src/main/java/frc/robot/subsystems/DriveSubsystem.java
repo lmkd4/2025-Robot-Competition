@@ -82,9 +82,6 @@ public class DriveSubsystem extends SubsystemBase {
 
   public DriveSubsystem() {
 
-      
-  
-      // Configure AutoBuilder last
       AutoBuilder.configure(
               this::getPose, // robot pose supplier
               this::resetOdometry, // method to reset odometry
@@ -94,22 +91,20 @@ public class DriveSubsystem extends SubsystemBase {
                       new PIDConstants(5.0, 0.0, 0.0), // translation PID constants
                       new PIDConstants(5.0, 0.0, 0.0) // rotation PID constants
               ),
-              config, // The robot configuration
+              config, 
               () -> {
-                // Boolean supplier that controls when the path will be mirrored for the red alliance
-                // This will flip the path being followed to the red side of the field.
-                // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-  
+                /*
+                 * boolean supplier controls path to be mirrored for the red alliance
+                 * origin remains on blue side
+                 */
                 var alliance = DriverStation.getAlliance();
                 if (alliance.isPresent()) {
                   return alliance.get() == DriverStation.Alliance.Red;
                 }
                 return false;
               },
-              this // Reference to this subsystem to set requirements
-      );
-      
-    HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
+              this // reference to this subsystem to set requirements
+            );
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds() {

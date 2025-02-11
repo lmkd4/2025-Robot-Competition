@@ -22,7 +22,7 @@ public class DistanceSensor extends SubsystemBase {
 
   // method to get the current distance reading in millimeters
   public double getRealRange() {
-    return distanceSensor.getRange(); // Use getRange() instead of GetRange()
+    return distanceSensor.getRange(); // Use getRange()
   }
 
   // method to check if the sensor is operating normally
@@ -32,6 +32,6 @@ public class DistanceSensor extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // Called once per scheduler run, you can use it for debugging
+    // called once per scheduler run, use it for debugging
   }
 }
