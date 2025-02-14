@@ -23,6 +23,9 @@ import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DistanceSensor;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.BearingBlock;
+import frc.robot.subsystems.ClimberPivot;
+import frc.robot.subsystems.Hooks;
 import frc.robot.commands.ElevatorCommand;
 
 import frc.robot.commands.ElevatorCommand;
@@ -44,10 +47,13 @@ public class RobotContainer {
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
   private final Elevator m_elevator = new Elevator(1, 2); // CAN ID's
   private final DistanceSensor m_distanceSensor = new DistanceSensor();
+  private final BearingBlock m_bearingBlock = new BearingBlock(1, 3);
+  private final ClimberPivot m_climberPivot = new ClimberPivot(4, 5);
+  private final Hooks m_hooks = new Hooks(1);
 
   // commands
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-  private final XboxController m_operaterController = new XboxController(OIConstants.kOperatorControllerPort);
+  private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
   private final ElevatorCommand m_elevatorCommand = new ElevatorCommand(m_elevator, m_distanceSensor);
 
   // container; contains subsystems, OI devices, and commands
@@ -70,11 +76,11 @@ public class RobotContainer {
         .whileTrue(new RunCommand(
             () -> m_robotDrive.setX(),
             m_robotDrive));
-    
-    new Trigger(m_elevator::sensorValid).onTrue(new ElevatorCommand(m_elevator, m_distanceSensor));
 
-    m_operatorController.
-
+    new JoystickButton(m_operatorController, 2).whileTrue(m_elevatorCommand); // send elevator to certain setpoint
+    new JoystickButton(m_operatorController, 3).whileTrue(m_elevatorCommand); 
+    new JoystickButton(m_operatorController, 4).whileTrue(m_elevatorCommand);
+    new JoystickButton(m_operatorController, 4).whileTrue(m_elevatorCommand);
   }
 
   // use to pass autonomous command to the main class
