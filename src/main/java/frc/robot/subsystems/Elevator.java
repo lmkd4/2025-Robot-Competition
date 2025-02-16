@@ -5,6 +5,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -45,6 +46,11 @@ public class Elevator extends SubsystemBase {
         // Encoder and PID controller from motor1
         encoder = motor1.getEncoder();
         pidController = motor1.getClosedLoopController();
+
+        setDefaultCommand(new RunCommand(() -> {
+            motor1.set(0.0);
+            motor2.set(0.0);
+        }, this));
 
         /*
         pidcontroller.setkP(kP);
@@ -121,17 +127,11 @@ public class Elevator extends SubsystemBase {
         });
     }
 
-    public Command motorStopUp() {
+    public Command motorStop() {
         return runOnce(() -> {
             motor1.set(0);
             motor2.set(0);
         });
     }
 
-    public Command motorStopDown() {
-        return runOnce(() -> {
-            motor1.set(0);
-            motor2.set(0);
-        });
-    }
 }

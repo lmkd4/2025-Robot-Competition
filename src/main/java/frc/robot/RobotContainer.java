@@ -9,10 +9,12 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import java.util.List;
@@ -20,17 +22,16 @@ import java.util.List;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.subsystems.BearingBlock;
+import frc.robot.subsystems.ClimberPivot;
 import frc.robot.subsystems.DistanceSensor;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Elevator;
-import frc.robot.subsystems.BearingBlock;
-import frc.robot.subsystems.ClimberPivot;
 import frc.robot.subsystems.Hooks;
 import frc.robot.commands.ElevatorCommand;
 
 import frc.robot.commands.ElevatorCommand;
 import frc.robot.subsystems.DistanceSensor;
-import frc.robot.subsystems.Elevator;
 import frc.robot.commands.ElevatorCommand;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -42,14 +43,13 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 // strucutre of robot (including subsystems, commands, and button mappings) should be declared here
 
 public class RobotContainer {
-    
   // robot subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final Elevator m_elevator = new Elevator(1, 2); // CAN ID's
+  private final Elevator m_elevator = new Elevator(30, 31); // CAN ID's
   private final DistanceSensor m_distanceSensor = new DistanceSensor();
-  private final BearingBlock m_bearingBlock = new BearingBlock(1, 3);
-  private final ClimberPivot m_climberPivot = new ClimberPivot(4, 5);
-  private final Hooks m_hooks = new Hooks(1);
+  private final ClimberPivot m_climberPivot = new ClimberPivot(12, 13);
+  private final BearingBlock m_bearingBlock = new BearingBlock(14, 15);
+  private final Hooks m_hooks = new Hooks(11);
 
   // commands
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
@@ -73,14 +73,43 @@ public class RobotContainer {
   private void configureButtonBindings() {
 
     new JoystickButton(m_driverController, Button.kR1.value)
-        .whileTrue(new RunCommand(
-            () -> m_robotDrive.setX(),
-            m_robotDrive));
+      .whileTrue(new RunCommand(
+          () -> m_robotDrive.setX(),
+          m_robotDrive));
 
-    new JoystickButton(m_operatorController, 2).whileTrue(m_elevatorCommand); // send elevator to certain setpoint
-    new JoystickButton(m_operatorController, 3).whileTrue(m_elevatorCommand); 
-    new JoystickButton(m_operatorController, 4).whileTrue(m_elevatorCommand);
-    new JoystickButton(m_operatorController, 4).whileTrue(m_elevatorCommand);
+    /*
+    new JoystickButton(m_operatorController, 1)
+      .whileTrue(new StartEndCommand(
+        () -> m_hooks.hooksIn(),
+        () -> m_hooks.hooksOut(),
+        m_hooks));
+    
+    new JoystickButton(m_operatorController, 2)
+      .whileTrue(new StartEndCommand(
+        () -> m_hooks.hooksOut(),
+        () -> m_hooks.hooksIn(),
+        m_hooks));
+    // hooks out
+    */
+    
+    new JoystickButton(m_operatorController, 1).whileTrue(m_hooks.hooksIn());
+    new JoystickButton(m_operatorController, 2).whileTrue(m_hooks.hooksOut());
+    /*
+    climber pivot controls
+    new JoystickButton(m_operatorController, 3)
+      .whileTrue(new StartEndCommand(
+        () -> m_climberPivot.pivotOut(),
+        () -> m_climberPivot.pivotIn(),
+        m_climberPivot));
+    */
+
+    new JoystickButton(m_operatorController, 3).whileTrue(m_climberPivot.pivotIn());
+    new JoystickButton(m_operatorController, 4).whileTrue(m_climberPivot.pivotOut());
+
+    new JoystickButton(m_operatorController, 5).whileTrue(m_bearingBlock.blockUp());
+    new JoystickButton(m_operatorController, 6).whileTrue(m_bearingBlock.blockDown());
+    
+
   }
 
   // use to pass autonomous command to the main class

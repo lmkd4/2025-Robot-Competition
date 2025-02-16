@@ -1,6 +1,5 @@
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Elevator;
 
@@ -15,10 +14,10 @@ public class ElevatorCommand extends Command {
 
   private final double targetDistance = 150;
 
-  private final double shelfDistance = 0;
-  private final double lowDistance = 0;
-  private final double midDistance = 0;
-  private final double highDistance = 0;
+  private final double kShelfDist = 0;
+  private final double kLowDist = 0;
+  private final double kMidDist = 0;
+  private final double kHighDist = 0;
 
   public ElevatorCommand(Elevator subsystem, DistanceSensor subsystem1) {
     m_elevator = subsystem;

@@ -53,8 +53,6 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kBackRightChassisAngularOffset);
 
-    RobotConfig config;
-
   // swerve drive modules in an array for easier access
   // convert MAXSwerveModule[] to SwerveModuleState[]
   SwerveModuleState[] moduleStates = {
@@ -81,7 +79,7 @@ public class DriveSubsystem extends SubsystemBase {
       });
 
   public DriveSubsystem() {
-
+    /*/
       AutoBuilder.configure(
               this::getPose, // robot pose supplier
               this::resetOdometry, // method to reset odometry
@@ -96,7 +94,7 @@ public class DriveSubsystem extends SubsystemBase {
                 /*
                  * boolean supplier controls path to be mirrored for the red alliance
                  * origin remains on blue side
-                 */
+                 
                 var alliance = DriverStation.getAlliance();
                 if (alliance.isPresent()) {
                   return alliance.get() == DriverStation.Alliance.Red;
@@ -105,8 +103,10 @@ public class DriveSubsystem extends SubsystemBase {
               },
               this // reference to this subsystem to set requirements
             );
+          */
   }
 
+  /*
   public ChassisSpeeds getRobotRelativeSpeeds() {
     return DriveConstants.kDriveKinematics.toChassisSpeeds(moduleStates);
   }
@@ -114,7 +114,8 @@ public class DriveSubsystem extends SubsystemBase {
   public void driveRobotRelative(ChassisSpeeds speeds) {
     setModuleStates(DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds));
   }
-
+  */ 
+  
   @Override
   public void periodic() {
     // update the odometry in the periodic block

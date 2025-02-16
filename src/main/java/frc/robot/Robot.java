@@ -9,8 +9,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.OIConstants;
-import frc.robot.subsystems.BearingBlock;
-import frc.robot.subsystems.ClimberPivot;
 import frc.robot.subsystems.Hooks;
 
 /**
@@ -19,17 +17,11 @@ import frc.robot.subsystems.Hooks;
  * the package after creating this project, you must also update the build.gradle file in the
  * project.
  */
+
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-
   private RobotContainer m_robotContainer;
-
-  private final BearingBlock m_bearingBlock = new BearingBlock(1, 2);
-  private final  ClimberPivot m_climberPivot = new ClimberPivot(3, 4);
-  private final Hooks m_hooks = new Hooks(1); 
-
-  private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
-
+  
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -99,31 +91,7 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {
-    if (m_operatorController.getAButton()) {
-      m_bearingBlock.blockUp();
-    }
-    
-    if (m_operatorController.getBButton()) {
-      m_bearingBlock.blockDown();
-    }
-
-    if (m_operatorController.getXButton()) {
-      m_climberPivot.pivotIn();
-    }
-
-    if (m_operatorController.getYButton()) {
-      m_climberPivot.pivotOut();
-    }
-
-    if (m_operatorController.getRightBumperButton()) {
-      m_hooks.hooksOut();
-    }
-
-    if (m_operatorController.getLeftBumperButton()) {
-      m_hooks.hooksIn();
-    }
-  }
+  public void teleopPeriodic() {}
 
   @Override
   public void testInit() {
