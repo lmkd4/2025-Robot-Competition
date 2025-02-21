@@ -22,19 +22,14 @@ import java.util.List;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
-import frc.robot.subsystems.BearingBlock;
 import frc.robot.subsystems.ClimberPivot;
 import frc.robot.subsystems.DistanceSensor;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.ElevatorPivot;
 import frc.robot.subsystems.Hooks;
 import frc.robot.commands.ElevatorCommand;
 
-import frc.robot.commands.ElevatorCommand;
-import frc.robot.subsystems.DistanceSensor;
-import frc.robot.commands.ElevatorCommand;
-
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -48,7 +43,7 @@ public class RobotContainer {
   private final Elevator m_elevator = new Elevator(30, 31); // CAN ID's
   private final DistanceSensor m_distanceSensor = new DistanceSensor();
   private final ClimberPivot m_climberPivot = new ClimberPivot(12, 13);
-  private final BearingBlock m_bearingBlock = new BearingBlock(14, 15);
+  private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final Hooks m_hooks = new Hooks(11);
 
   // commands
@@ -59,6 +54,7 @@ public class RobotContainer {
   // container; contains subsystems, OI devices, and commands
   public RobotContainer() {
     configureButtonBindings();
+    m_elevator.clampElevatorSetpoints();
 
     m_robotDrive.setDefaultCommand(
         new RunCommand(
@@ -77,39 +73,17 @@ public class RobotContainer {
           () -> m_robotDrive.setX(),
           m_robotDrive));
 
-    /*
-    new JoystickButton(m_operatorController, 1)
-      .whileTrue(new StartEndCommand(
-        () -> m_hooks.hooksIn(),
-        () -> m_hooks.hooksOut(),
-        m_hooks));
-    
-    new JoystickButton(m_operatorController, 2)
-      .whileTrue(new StartEndCommand(
-        () -> m_hooks.hooksOut(),
-        () -> m_hooks.hooksIn(),
-        m_hooks));
-    // hooks out
-    */
     
     new JoystickButton(m_operatorController, 1).whileTrue(m_hooks.hooksIn());
     new JoystickButton(m_operatorController, 2).whileTrue(m_hooks.hooksOut());
-    /*
-    climber pivot controls
-    new JoystickButton(m_operatorController, 3)
-      .whileTrue(new StartEndCommand(
-        () -> m_climberPivot.pivotOut(),
-        () -> m_climberPivot.pivotIn(),
-        m_climberPivot));
-    */
-
+    
     new JoystickButton(m_operatorController, 3).whileTrue(m_climberPivot.pivotIn());
     new JoystickButton(m_operatorController, 4).whileTrue(m_climberPivot.pivotOut());
-
-    new JoystickButton(m_operatorController, 5).whileTrue(m_bearingBlock.blockUp());
-    new JoystickButton(m_operatorController, 6).whileTrue(m_bearingBlock.blockDown());
     
-
+    // towards reef
+    new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.in());
+    // towards hp station
+    new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.out());
   }
 
   // use to pass autonomous command to the main class

@@ -18,10 +18,9 @@ import com.revrobotics.spark.ClosedLoopSlot;
 
 import edu.wpi.first.wpilibj.I2C;
 
-public class BearingBlock extends SubsystemBase {
+public class ElevatorPivot extends SubsystemBase {
 
     private final SparkFlex motor1;
-    private final SparkFlex motor2;
 
     // PID constants
     private static final double kP = 0.1;
@@ -29,31 +28,27 @@ public class BearingBlock extends SubsystemBase {
     private static final double kD = 0.0;
 
     // constants
-    private final double kBlockSpeed = 0.2;
+    private final double kPivotSpeed = 0.2;
     private final double blockMax = 0;
     private final double blockMin = 0;
 
-    public BearingBlock(int motor1Port, int motor2Port) {
+    public ElevatorPivot(int motor1Port) {
         motor1 = new SparkFlex(motor1Port, MotorType.kBrushless);
-        motor2 = new SparkFlex(motor2Port, MotorType.kBrushless);
 
         setDefaultCommand(new RunCommand(() -> {
             motor1.set(0.0);
-            motor2.set(0.0);
         }, this));
     }
 
-    public Command blockUp() {
+    public Command in() {
         return new RunCommand(() -> {
-            motor1.set(kBlockSpeed);
-            motor2.set(-kBlockSpeed);
+            motor1.set(kPivotSpeed);
         }, this);
     }
 
-    public Command blockDown() {
+    public Command out() {
         return new RunCommand(() -> {
-            motor1.set(-kBlockSpeed);
-            motor2.set(kBlockSpeed);
+            motor1.set(-kPivotSpeed);
         }, this);
     }
 }
