@@ -12,16 +12,12 @@ public class ElevatorCommand extends Command {
 
   public DistanceSensor m_distanceSensor;
 
-  private final double targetDistance = 150;
-
-  private final double kShelfDist = 0;
-  private final double kLowDist = 0;
-  private final double kMidDist = 0;
-  private final double kHighDist = 0;
-
-  public ElevatorCommand(Elevator subsystem, DistanceSensor subsystem1) {
+  public double targetDistance;
+  
+  public ElevatorCommand(Elevator subsystem, DistanceSensor subsystem1, double targetDistance) {
     m_elevator = subsystem;
     m_distanceSensor = subsystem1;
+    this.targetDistance = targetDistance;
     addRequirements(subsystem);
     addRequirements(subsystem1);
   }
@@ -29,28 +25,21 @@ public class ElevatorCommand extends Command {
   // called when the command is initially scheduled
   @Override
   public void initialize() {
-    m_elevator.moveUp();
+    if (m_distanceSensor.getRealRange() >= targetDistance) {
+      m_elevator.moveDown();
+    }
+    else if (m_distanceSensor.getRealRange() <= targetDistance) {
+      m_elevator.moveUp();
+    }
     m_distanceSensor.getRealRange();
   }
 
   // called every time the scheduler runs while the command is scheduled
   @Override
   public void execute() {
-    if (m_distanceSensor.getRealRange() >= targetDistance) {
+    if (m_distanceSensor.getRealRange() == targetDistance) {
       m_elevator.stop();
     }
-  }
-
-  // lowest reef level setpoint
-  public void shelfLevel() {
-    if (m_distanceSensor.getRealRange() >= targetDistance) {
-      m_elevator.stop();
-    }
-  }
-
-  // low reef level setpoint
-  public void lowLevel() {
-    m_distanceSensor.getRealRange();
   }
 
   // called when command ends or is interrupted
@@ -62,6 +51,6 @@ public class ElevatorCommand extends Command {
   // returns true when the command should end
   @Override
   public boolean isFinished() {
-    return m_distanceSensor.getRealRange() >= targetDistance;
+    return m_distanceSensor.getRealRange() == targetDistance;
   }
 }

@@ -12,6 +12,7 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
@@ -40,19 +41,21 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // robot subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final Elevator m_elevator = new Elevator(30, 31); // CAN ID's
+  private final Elevator m_elevator = new Elevator(14, 15); // CAN ID's
   private final DistanceSensor m_distanceSensor = new DistanceSensor();
-  private final ClimberPivot m_climberPivot = new ClimberPivot(12, 13);
   private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final Hooks m_hooks = new Hooks(11);
+
+  public double kShelfDist = 130;
 
   // commands
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
-  private final ElevatorCommand m_elevatorCommand = new ElevatorCommand(m_elevator, m_distanceSensor);
+  private final ElevatorCommand m_elevatorCommand = new ElevatorCommand(m_elevator, m_distanceSensor, kShelfDist);
 
   // container; contains subsystems, OI devices, and commands
   public RobotContainer() {
+
     configureButtonBindings();
     m_elevator.clampElevatorSetpoints();
 
@@ -73,12 +76,12 @@ public class RobotContainer {
           () -> m_robotDrive.setX(),
           m_robotDrive));
 
+    new JoystickButton(m_operatorController, 1)
+      .whileTrue(new ElevatorCommand(m_elevator, m_distanceSensor, kShelfDist));
     
-    new JoystickButton(m_operatorController, 1).whileTrue(m_hooks.hooksIn());
-    new JoystickButton(m_operatorController, 2).whileTrue(m_hooks.hooksOut());
     
-    new JoystickButton(m_operatorController, 3).whileTrue(m_climberPivot.pivotIn());
-    new JoystickButton(m_operatorController, 4).whileTrue(m_climberPivot.pivotOut());
+    new JoystickButton(m_operatorController, 3).whileTrue(m_elevator.moveUp());
+    new JoystickButton(m_operatorController, 4).whileTrue(m_elevator.moveDown());
     
     // towards reef
     new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.in());

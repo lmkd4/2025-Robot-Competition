@@ -5,6 +5,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -23,11 +24,10 @@ public class Elevator extends SubsystemBase {
     private final SparkMax motor2;
 
     // Encoder and PID controller
-    private final RelativeEncoder encoder;
     private final SparkClosedLoopController pidController;
 
     // Constants (modify these based on your elevator design)
-    private static final double kElevatorSpeed = 0.5;
+    private static final double kElevatorSpeed = 0.15;
     private static final double kP = 0.1;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
@@ -37,14 +37,11 @@ public class Elevator extends SubsystemBase {
     private static final double lowLim = 0;
     private static final double highLim = 0;
 
-
-
     public Elevator(int motor1Port, int motor2Port) {
         motor1 = new SparkMax(motor1Port, MotorType.kBrushless);
         motor2 = new SparkMax(motor2Port, MotorType.kBrushless);
 
         // Encoder and PID controller from motor1
-        encoder = motor1.getEncoder();
         pidController = motor1.getClosedLoopController();
 
         setDefaultCommand(new RunCommand(() -> {
@@ -70,69 +67,30 @@ public class Elevator extends SubsystemBase {
         pidController.setReference(position, SparkMax.ControlType.kPosition);
     }
 
-    public void clampSetpoints() {
-        if (encoder.getPosition() <= lowLim || encoder.getPosition() >= highLim) {
-            motor1.set(0);
-            motor2.set(0);
-        }
-        else {
-            
-        }
+    public void clampElevatorSetpoints() {
+        // rewrite with distance sensor
     }
 
-
-    // Stops the elevator motor
     public void stop() {
         motor1.set(0);
         motor2.set(0);
     }
 
-    public void moveUp() {
-        motor1.set(-kElevatorSpeed);
-        motor2.set(kElevatorSpeed);
+    public Command moveUp() {
+        return new RunCommand(() -> {
+            motor1.set(kElevatorSpeed);
+            motor2.set(-kElevatorSpeed);
+        }, this);
     }
 
-    public void moveDown() {
-        motor1.set(kElevatorSpeed);
-        motor2.set(-kElevatorSpeed);
+    public Command moveDown() {
+        return new RunCommand(() -> {
+            motor1.set(-kElevatorSpeed);
+            motor2.set(kElevatorSpeed);
+        }, this);
     }
 
-    @Override
-    public void periodic() {
-        // Display encoder and limit switch states on SmartDashboard
-        // SmartDashboard.putNumber("Elevator Position", encoder.getPosition());
-        // Stop the elevator if it reaches a limit switch
-
+    public Command shelfLevel() {
+        return new InstantCommand();
     }
-
-    public boolean sensorValid() {
-        // Query some boolean state, such as a digital sensor.
-        return false;
-      }
-
-    public boolean buttonReleased() {
-        return false;
-    }
-
-    public Command motorUp() {
-        return runOnce(() -> {
-            motor1.set(0.2);
-            motor2.set(-0.2);
-        });
-    }
-
-    public Command motorDown() {
-        return runOnce(() -> {
-            motor1.set(-0.2);
-            motor2.set(0.2);
-        });
-    }
-
-    public Command motorStop() {
-        return runOnce(() -> {
-            motor1.set(0);
-            motor2.set(0);
-        });
-    }
-
 }
