@@ -29,7 +29,6 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 import frc.robot.subsystems.Hooks;
-import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.ScoringCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -91,9 +90,8 @@ public class RobotContainer {
       .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kHighReefDist));
     
     // elevator pivot control
-    new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.in()); // towards reef
-    new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.out()); // towards hp station
-
+    new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.pivotCommand(0.1));
+    new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.pivotCommand(-0.1));
     // elevator manual control
     new JoystickButton(m_operatorController, 7).whileTrue(m_elevator.moveUp());
     new JoystickButton(m_operatorController, 8).whileTrue(m_elevator.moveDown());
