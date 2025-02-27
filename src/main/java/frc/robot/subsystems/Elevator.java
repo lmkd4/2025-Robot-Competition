@@ -31,6 +31,7 @@ public class Elevator extends SubsystemBase {
     private static final double kP = 0.1;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
+    
     private static final double kMaxHeight = 540.0; // Example max position
     private static final double kMinHeight = 75.0;
 
@@ -71,23 +72,27 @@ public class Elevator extends SubsystemBase {
         // rewrite with distance sensor
     }
 
+    public boolean supplierCondition() {
+        return false;
+    }
+
     public void stop() {
         motor1.set(0);
         motor2.set(0);
     }
 
     public Command moveUp() {
-        return new RunCommand(() -> {
+        return run(() -> {
             motor1.set(kElevatorSpeed);
             motor2.set(-kElevatorSpeed);
-        }, this);
+        });
     }
 
     public Command moveDown() {
-        return new RunCommand(() -> {
+        return run(() -> {
             motor1.set(-kElevatorSpeed);
             motor2.set(kElevatorSpeed);
-        }, this);
+        });
     }
 
     public Command shelfLevel() {

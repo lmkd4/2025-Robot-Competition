@@ -30,7 +30,7 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 import frc.robot.subsystems.Hooks;
 import frc.robot.commands.ElevatorCommand;
-
+import frc.robot.commands.ScoringCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -46,12 +46,15 @@ public class RobotContainer {
   private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final Hooks m_hooks = new Hooks(11);
 
-  public double kShelfDist = 130;
+  private final double kShelfDist = 130;
+  private final double kLowReefDist = 180;
+  private final double kMidReefDist = 200;
+  private final double kHighReefDist = 250;
 
   // commands
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
-  private final ElevatorCommand m_elevatorCommand = new ElevatorCommand(m_elevator, m_distanceSensor, kShelfDist);
+  private final ScoringCommand m_elevatorCommand = new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kShelfDist);
 
   // container; contains subsystems, OI devices, and commands
   public RobotContainer() {
@@ -71,22 +74,29 @@ public class RobotContainer {
 
   private void configureButtonBindings() {
 
+    // driving config
     new JoystickButton(m_driverController, Button.kR1.value)
       .whileTrue(new RunCommand(
           () -> m_robotDrive.setX(),
           m_robotDrive));
 
+    // elevator preset commands
     new JoystickButton(m_operatorController, 1)
-      .whileTrue(new ElevatorCommand(m_elevator, m_distanceSensor, kShelfDist));
+      .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kShelfDist));
+    new JoystickButton(m_operatorController, 2)
+      .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kLowReefDist));
+    new JoystickButton(m_operatorController, 3)
+      .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kMidReefDist));
+    new JoystickButton(m_operatorController, 4)
+      .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kHighReefDist));
     
-    
-    new JoystickButton(m_operatorController, 3).whileTrue(m_elevator.moveUp());
-    new JoystickButton(m_operatorController, 4).whileTrue(m_elevator.moveDown());
-    
-    // towards reef
-    new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.in());
-    // towards hp station
-    new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.out());
+    // elevator pivot control
+    new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.in()); // towards reef
+    new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.out()); // towards hp station
+
+    // elevator manual control
+    new JoystickButton(m_operatorController, 7).whileTrue(m_elevator.moveUp());
+    new JoystickButton(m_operatorController, 8).whileTrue(m_elevator.moveDown());
   }
 
   // use to pass autonomous command to the main class

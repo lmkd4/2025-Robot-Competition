@@ -25,13 +25,14 @@ public class ElevatorCommand extends Command {
   // called when the command is initially scheduled
   @Override
   public void initialize() {
+    m_distanceSensor.getRealRange();
+
     if (m_distanceSensor.getRealRange() >= targetDistance) {
       m_elevator.moveDown();
     }
     else if (m_distanceSensor.getRealRange() <= targetDistance) {
       m_elevator.moveUp();
     }
-    m_distanceSensor.getRealRange();
   }
 
   // called every time the scheduler runs while the command is scheduled
