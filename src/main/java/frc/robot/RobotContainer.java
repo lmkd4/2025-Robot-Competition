@@ -53,7 +53,7 @@ public class RobotContainer {
   // commands
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
-  private final ScoringCommand m_elevatorCommand = new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kShelfDist);
+  private final ScoringCommand m_ScoringCommand = new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kShelfDist);
 
   // container; contains subsystems, OI devices, and commands
   public RobotContainer() {
@@ -80,18 +80,11 @@ public class RobotContainer {
           m_robotDrive));
 
     // elevator preset commands
-    new JoystickButton(m_operatorController, 1)
-      .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kShelfDist));
-    new JoystickButton(m_operatorController, 2)
-      .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kLowReefDist));
-    new JoystickButton(m_operatorController, 3)
-      .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kMidReefDist));
-    new JoystickButton(m_operatorController, 4)
-      .whileTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kHighReefDist));
     
     // elevator pivot control
-    new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.pivotCommand(0.1));
-    new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.pivotCommand(-0.1));
+    new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.pivotOutCommand());
+    new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.pivotInCommand());
+
     // elevator manual control
     new JoystickButton(m_operatorController, 7).whileTrue(m_elevator.moveUp());
     new JoystickButton(m_operatorController, 8).whileTrue(m_elevator.moveDown());

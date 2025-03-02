@@ -18,6 +18,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.sim.SparkFlexExternalEncoderSim;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import edu.wpi.first.wpilibj.I2C;
 
@@ -32,7 +33,7 @@ public class ElevatorPivot extends SubsystemBase {
     private static final double kD = 0.0;
 
     // constants
-    private final double kPivotSpeed = 0.2;
+    private final double kPivotSpeed = 0.15;
 
     private final PIDController m_feedback = new PIDController(kP, kI, kD);
     private final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(kI, kD);
@@ -45,23 +46,40 @@ public class ElevatorPivot extends SubsystemBase {
         m_feedback.setTolerance(0.1);
 
         setDefaultCommand(new RunCommand(() -> {
-            motor1.set(0.0);
+            motor1.set(
+                m_feedforward.calculate(kPivotSpeed)
+                    + m_feedback.calculate(
+                        m_encoder.getPosition(), kPivotSpeed));
         }, this));
     }
 
+    public void putNumberOnScreen() {
+        SmartDashboard.putNumber("Encoder:", m_encoder.getPosition());
+    }
+    
     public Command stop() {
         return run( () -> {
             motor1.set(0);
         });
     }
 
-    public Command pivotCommand(double setAngularVelocity) {
+    public Command pivotOutCommand() {
         return run(
                     () -> {
                       motor1.set(
-                          m_feedforward.calculate(setAngularVelocity)
+                          m_feedforward.calculate(kPivotSpeed)
                               + m_feedback.calculate(
-                                  m_encoder.getPosition(), setAngularVelocity));
+                                  m_encoder.getPosition(), kPivotSpeed));
+                    });    
+      }
+
+    public Command pivotInCommand() {
+        return run(
+                    () -> {
+                      motor1.set(
+                          m_feedforward.calculate(-kPivotSpeed)
+                              + m_feedback.calculate(
+                                  m_encoder.getPosition(), -kPivotSpeed));
                     });    
       }
     }

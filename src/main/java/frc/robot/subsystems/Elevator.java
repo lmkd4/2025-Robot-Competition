@@ -76,9 +76,11 @@ public class Elevator extends SubsystemBase {
         return false;
     }
 
-    public void stop() {
-        motor1.set(0);
-        motor2.set(0);
+    public Command stop() {
+        return run(() -> {
+            motor1.set(0);
+            motor2.set(0);
+        });
     }
 
     public Command moveUp() {
