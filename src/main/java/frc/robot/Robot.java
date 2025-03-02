@@ -25,6 +25,8 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
   private DistanceSensor m_distanceSensor;
+  public ElevatorPivot m_elevatorPivot;
+
   
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -36,6 +38,7 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
     m_distanceSensor = new DistanceSensor();
+    m_elevatorPivot = new ElevatorPivot(0);
   }
 
   /**

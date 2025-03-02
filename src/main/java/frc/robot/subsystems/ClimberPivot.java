@@ -23,14 +23,10 @@ public class ClimberPivot extends SubsystemBase {
     // Motors
     private final SparkFlex motor1;
     private final SparkFlex motor2;
-
-    // Encoder and PID controller
-    private final RelativeEncoder encoder;
-    private final SparkClosedLoopController pidController;
     
     // Constants (modify these based on your elevator design)
-    private static final double kPivotSpeed = 0.3;
-    private static final double kP = 0.1;
+    private static final double kPivotSpeed = 0.40;
+    private static final double kP = 0.0;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
@@ -44,11 +40,6 @@ public class ClimberPivot extends SubsystemBase {
         }, this));
 
         // Encoder and PID controller from motor1
-        encoder = motor1.getEncoder();
-        pidController = motor1.getClosedLoopController();
-
-        SimpleMotorFeedforward m_pivotFeedforward = new SimpleMotorFeedforward(motor1Port, motor2Port);
-        PIDController m_pivotFeedback = new PIDController(kP, kD, kI);
     }
 
     public Command pivotOut() {
