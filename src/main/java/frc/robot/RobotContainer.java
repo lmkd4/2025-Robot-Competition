@@ -58,13 +58,15 @@ public class RobotContainer {
 
   public final ScoringCommand m_lowScoringCommand = new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kLowReefDist);
 
+
   // container; contains subsystems, OI devices, and commands
   public RobotContainer() {
 
     configureButtonBindings();
     m_elevator.clampElevatorSetpoints();
-    
 
+    m_elevatorPivot.setDefaultCommand(m_elevatorPivot.controlPivot());
+    
     m_robotDrive.setDefaultCommand(
         new RunCommand(
             () -> m_robotDrive.drive(
@@ -75,6 +77,7 @@ public class RobotContainer {
             m_robotDrive));
   }
 
+
   private void configureButtonBindings() {
 
     // driving config
@@ -83,8 +86,13 @@ public class RobotContainer {
           () -> m_robotDrive.setX(),
           m_robotDrive));
 
-    new JoystickButton(m_driverController, 7).whileTrue(m_lowScoringCommand);
-
+    new Trigger(() -> m_elevator.supplierCondition())
+      .onTrue(new ScoringCommand(m_elevator, m_distanceSensor, m_elevatorPivot, kShelfDist));
+      
+    new JoystickButton(m_driverController, 7)
+      .onTrue(m_lowScoringCommand);
+  
+  
     // elevator pivot control
     new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.pivotOutCommand());
     new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.pivotInCommand());
@@ -95,6 +103,8 @@ public class RobotContainer {
 
     new JoystickButton(m_operatorController, 1).whileTrue(m_climberPivot.pivotOut());
     new JoystickButton(m_operatorController, 2).whileTrue(m_climberPivot.pivotIn());
+
+    new JoystickButton(m_operatorController, 10).whileTrue(m_elevatorPivot.smartdashboard());
   }
 
   // use to pass autonomous command to the main class
