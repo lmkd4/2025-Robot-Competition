@@ -99,6 +99,8 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     SmartDashboard.putNumber("distance sensor", m_distanceSensor.getRealRange());
+
+    SmartDashboard.updateValues();
   }
 
   @Override

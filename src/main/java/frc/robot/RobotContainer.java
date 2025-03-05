@@ -63,8 +63,8 @@ public class RobotContainer {
   public RobotContainer() {
 
     configureButtonBindings();
-    m_elevator.clampElevatorSetpoints();
 
+    m_elevatorPivot.homeSetpoints();
     m_elevatorPivot.setDefaultCommand(m_elevatorPivot.controlPivot());
     
     m_robotDrive.setDefaultCommand(
@@ -97,14 +97,15 @@ public class RobotContainer {
     new JoystickButton(m_operatorController, 5).whileTrue(m_elevatorPivot.pivotOutCommand());
     new JoystickButton(m_operatorController, 6).whileTrue(m_elevatorPivot.pivotInCommand());
 
+    new JoystickButton(m_operatorController, 1).whileTrue(m_elevatorPivot.adjustSetpointUp());
+    new JoystickButton(m_operatorController, 2).whileTrue(m_elevatorPivot.adjustSetpointDown());
+
     // elevator manual control
     new JoystickButton(m_operatorController, 3).whileTrue(m_elevator.moveUp());
     new JoystickButton(m_operatorController, 4).whileTrue(m_elevator.moveDown());
 
-    new JoystickButton(m_operatorController, 1).whileTrue(m_climberPivot.pivotOut());
-    new JoystickButton(m_operatorController, 2).whileTrue(m_climberPivot.pivotIn());
-
-    new JoystickButton(m_operatorController, 10).whileTrue(m_elevatorPivot.smartdashboard());
+    //new JoystickButton(m_operatorController, 1).whileTrue(m_climberPivot.pivotOut());
+    //new JoystickButton(m_operatorController, 2).whileTrue(m_climberPivot.pivotIn());
   }
 
   // use to pass autonomous command to the main class

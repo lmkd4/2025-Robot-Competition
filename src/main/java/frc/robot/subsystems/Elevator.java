@@ -8,6 +8,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -24,13 +27,17 @@ public class Elevator extends SubsystemBase {
     private final SparkMax motor2;
 
     // Encoder and PID controller
-    private final SparkClosedLoopController pidController;
+    private final PIDController feedback = new PIDController(kP, kI, kD);
+    private final SimpleMotorFeedforward feedfoward = new SimpleMotorFeedforward(0.1, 0.2);
+    private final SlewRateLimiter elevatorRateLimiter = new SlewRateLimiter(1);
 
     // Constants (modify these based on your elevator design)
     private static final double kElevatorSpeed = 0.15;
     private static final double kP = 0.1;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
+
+    private static double elevatorSetpoint = 0;
     
     private static final double kMaxHeight = 540.0; // Example max position
     private static final double kMinHeight = 75.0;
@@ -42,34 +49,12 @@ public class Elevator extends SubsystemBase {
         motor1 = new SparkMax(motor1Port, MotorType.kBrushless);
         motor2 = new SparkMax(motor2Port, MotorType.kBrushless);
 
-        // Encoder and PID controller from motor1
-        pidController = motor1.getClosedLoopController();
-
-        setDefaultCommand(new RunCommand(() -> {
-            motor1.set(0.0);
-            motor2.set(0.0);
-        }, this));
-
-        /*
-        pidcontroller.setkP(kP);
-        pidController.setkI(kI);
-        pidController.setkD(kD);
-        */
-    }
-    
-
-    // Method to move the elevator to a target height
-    public void setPosition(double position) {
-        if (position > kMaxHeight) {
-            position = kMaxHeight;
-        } else if (position < kMinHeight) {
-            position = kMinHeight;
-        }
-        pidController.setReference(position, SparkMax.ControlType.kPosition);
-    }
-
-    public void clampElevatorSetpoints() {
-        // rewrite with distance sensor
+        setDefaultCommand(
+            run(() -> {
+                motor1.set(0);
+                motor2.set(0);
+            }
+        ));
     }
 
     public boolean supplierCondition() {

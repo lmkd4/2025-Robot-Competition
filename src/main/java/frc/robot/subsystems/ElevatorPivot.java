@@ -4,7 +4,9 @@ import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -15,7 +17,7 @@ public class ElevatorPivot extends SubsystemBase {
     private final SparkFlex motor1;
     private final SparkAbsoluteEncoder encoder;
 
-    private static final double kP = 0.05;  
+    private static final double kP = 0.2;  
     private static final double kI = 0; 
     private static final double kD = 0;  
 
@@ -24,7 +26,7 @@ public class ElevatorPivot extends SubsystemBase {
     private static final double kAngularVelocity = 0.3;
 
     private final PIDController feedback = new PIDController(kP, kI, kD);
-    private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(0.1, 0.2);
+    private final ArmFeedforward feedforward = new ArmFeedforward(0, 0.04, 0);
     private final SlewRateLimiter pivotRateLimiter = new SlewRateLimiter(1);
 
     public ElevatorPivot(int motor1id) {
@@ -40,22 +42,43 @@ public class ElevatorPivot extends SubsystemBase {
 
     // **Set home position based on current encoder value**
     public void homeSetpoints() {
-        pivotSetpoint = encoder.getPosition();
+        pivotSetpoint = getPivotAngle();
         feedback.reset();
     }
 
+    public Command adjustSetpointUp() {
+        return runOnce(() -> {
+            if (pivotSetpoint < 3.14) {
+                pivotSetpoint = getPivotAngle() + 0.5;
+            }
+            // add clamp
+        });
+    }
+
+    public Command adjustSetpointDown() {
+        return runOnce(() -> {
+            if (pivotSetpoint > -1.57){
+                pivotSetpoint = getPivotAngle() - 0.5;
+            }
+        });
+    }
+
     public double getPivotAngle() {
-        return encoder.getPosition();
+        return ((2*3.14159)*encoder.getPosition()) - 2.77;
     }
 
     // **Manually apply PID control**
     public Command controlPivot() {
         return run(() -> {
             double pidOutput = feedback.calculate(getPivotAngle(), pivotSetpoint);
-            double ffOutput = feedforward.calculate(pivotSetpoint);
-            double finalOutput = pidOutput + ffOutput;
+            double ffOutput = feedforward.calculate(getPivotAngle() - (0.209), 0);
+            double finalOutput = ffOutput + pidOutput;
 
-            motor1.set(finalOutput);
+            SmartDashboard.putNumber("Pivot Encoder Position", getPivotAngle());
+            SmartDashboard.putNumber("Pivot Setpoint", pivotSetpoint);
+            SmartDashboard.putNumber("Pivot Error", feedback.getPositionError());
+
+            motor1.set(-finalOutput);
         });
     }
 
@@ -65,7 +88,8 @@ public class ElevatorPivot extends SubsystemBase {
 
     public Command pivotOutCommand() {
         return run(() -> {
-            double output = feedforward.calculate(-kAngularVelocity)
+
+            double output = feedforward.calculate(encoder.getPosition(), -kAngularVelocity)
                     + feedback.calculate(encoder.getPosition(), -kAngularVelocity);
             motor1.set(output);
         });
@@ -73,17 +97,9 @@ public class ElevatorPivot extends SubsystemBase {
 
     public Command pivotInCommand() {
         return run(() -> {
-            double output = feedforward.calculate(kAngularVelocity)
+            double output = feedforward.calculate(encoder.getPosition(), kAngularVelocity)
                     + feedback.calculate(encoder.getPosition(), kAngularVelocity);
             motor1.set(output);
-        });
-    }
-
-    public Command smartdashboard() {
-        return run(() -> {
-            SmartDashboard.putNumber("Pivot Encoder Position", encoder.getPosition());
-            SmartDashboard.putNumber("Pivot Setpoint", pivotSetpoint);
-            SmartDashboard.putNumber("Pivot Error", feedback.getPositionError());
         });
     }
 }

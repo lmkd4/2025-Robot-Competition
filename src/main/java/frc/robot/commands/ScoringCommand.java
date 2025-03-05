@@ -50,7 +50,6 @@ public class ScoringCommand extends Command {
     if (m_distanceSensor.getRealRange() == targetDistance) {
       m_elevator.stop();
     }
-
     // integrate pivot movement here
   }
 
