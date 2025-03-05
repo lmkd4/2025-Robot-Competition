@@ -38,8 +38,6 @@ public class ClimberPivot extends SubsystemBase {
             motor1.set(0.0);
             motor2.set(0.0);
         }, this));
-
-        // Encoder and PID controller from motor1
     }
 
     public Command pivotOut() {

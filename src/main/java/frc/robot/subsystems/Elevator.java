@@ -26,6 +26,8 @@ public class Elevator extends SubsystemBase {
     private final SparkMax motor1;
     private final SparkMax motor2;
 
+    public DistanceSensor m_distanceSensor;
+
     // Encoder and PID controller
     private final PIDController feedback = new PIDController(kP, kI, kD);
     private final SimpleMotorFeedforward feedfoward = new SimpleMotorFeedforward(0.1, 0.2);
@@ -61,6 +63,10 @@ public class Elevator extends SubsystemBase {
         return false;
     }
 
+    public double getElevatorHeight() {
+        return m_distanceSensor.getRealRange();
+    }
+
     public Command stop() {
         return run(() -> {
             motor1.set(0);
@@ -82,6 +88,25 @@ public class Elevator extends SubsystemBase {
         });
     }
 
+    public Command sendToSetpoint(double targetDistance) {
+
+        return new RunCommand(() -> {
+            double currentDistance = m_distanceSensor.getRealRange();
+            double error = targetDistance - currentDistance;
+    
+            if (Math.abs(error) < 0.5) {
+                stop();
+            } 
+            else if (error > 0) {
+                moveUp();
+            } 
+            else {
+                moveDown();
+            }
+        }, this).until(() -> Math.abs(m_distanceSensor.getRealRange() - targetDistance) < 0.5);
+    }
+    
+    
     public Command shelfLevel() {
         return new InstantCommand();
     }

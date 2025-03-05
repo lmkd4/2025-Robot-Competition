@@ -88,18 +88,19 @@ public class ElevatorPivot extends SubsystemBase {
 
     public Command pivotOutCommand() {
         return run(() -> {
-
-            double output = feedforward.calculate(encoder.getPosition(), -kAngularVelocity)
-                    + feedback.calculate(encoder.getPosition(), -kAngularVelocity);
-            motor1.set(output);
+            motor1.set(0.2);
         });
     }
 
     public Command pivotInCommand() {
         return run(() -> {
-            double output = feedforward.calculate(encoder.getPosition(), kAngularVelocity)
-                    + feedback.calculate(encoder.getPosition(), kAngularVelocity);
-            motor1.set(output);
+            motor1.set(-0.2);
         });
     }
+    
+    public Command findSetpoint(double target) {
+        return runOnce(() -> {
+            pivotSetpoint = target;
+        });
+    }   
 }
