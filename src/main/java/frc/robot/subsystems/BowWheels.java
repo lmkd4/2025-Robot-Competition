@@ -46,11 +46,6 @@ public class BowWheels extends SubsystemBase {
         return run(() -> {
             motor1.set(kWheelSpeed);
             motor2.set(-kWheelSpeed);
-
-            if (ir_sensor.get() == false) {
-                motor1.set(0);
-            }
-
         });
     }
 
@@ -58,12 +53,6 @@ public class BowWheels extends SubsystemBase {
         return run(() -> {
             motor1.set(-kWheelSpeed);
             motor2.set(kWheelSpeed);
-        });
-    }
-
-    public Command stop() {
-        return run(() -> {
-            motor1.set(0);
         });
     }
 }

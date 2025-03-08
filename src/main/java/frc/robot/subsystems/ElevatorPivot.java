@@ -52,6 +52,7 @@ public class ElevatorPivot extends SubsystemBase {
                 pivotSetpoint = getPivotAngle() + 0.5;
             }
             // add clamp
+            pivotSetpoint = Math.min(pivotSetpoint, 3.14);
         });
     }
 
@@ -60,8 +61,12 @@ public class ElevatorPivot extends SubsystemBase {
             if (pivotSetpoint > -1.57){
                 pivotSetpoint = getPivotAngle() - 0.5;
             }
+
+            pivotSetpoint = Math.max(pivotSetpoint, -1.57);
         });
     }
+
+
 
     public double getPivotAngle() {
         return ((2*3.14159)*encoder.getPosition()) - 2.77;

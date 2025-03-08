@@ -25,7 +25,7 @@ public class ClimberPivot extends SubsystemBase {
     private final SparkFlex motor2;
     
     // Constants (modify these based on your elevator design)
-    private static final double kPivotSpeed = 0.40;
+    private static final double kPivotSpeed = 1;
     private static final double kP = 0.0;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
@@ -42,8 +42,8 @@ public class ClimberPivot extends SubsystemBase {
 
     public Command pivotOut() {
         return new RunCommand(() -> {
-            motor1.set(kPivotSpeed);
-            motor2.set(-kPivotSpeed);
+            motor1.set(.4);
+            motor2.set(-.4);
         }, this);
     }
 
