@@ -23,15 +23,16 @@ public class AlignWithReef extends Command {
   
     @Override
     public void execute() {
-      
+      m_driveSubsystem.drive(m_limelight.getX()*0.1, 0, 0, false);
     }
   
     @Override
     public void end(boolean interrupted) {
+      m_driveSubsystem.drive(0, 0, 0, false);
     }
   
     @Override
     public boolean isFinished() {
-      return false;
+      return m_limelight.getX() < .5;
     }
   }

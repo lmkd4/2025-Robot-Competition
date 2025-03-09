@@ -40,14 +40,14 @@ public class ClimberPivot extends SubsystemBase {
         }, this));
     }
 
-    public Command pivotOut() {
+    public Command pivotIn() {
         return new RunCommand(() -> {
-            motor1.set(.4);
-            motor2.set(-.4);
+            motor1.set(kPivotSpeed);
+            motor2.set(-kPivotSpeed);
         }, this);
     }
 
-    public Command pivotIn() {
+    public Command pivotOut() {
         return new RunCommand(() -> {
             motor1.set(-kPivotSpeed);
             motor2.set(kPivotSpeed);

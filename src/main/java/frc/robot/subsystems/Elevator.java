@@ -82,7 +82,6 @@ public class Elevator extends SubsystemBase {
 
         if (measurement != null && measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT) {
             SmartDashboard.putNumber("Target:", measurement.distance_mm);
-            System.out.println("Target is " + measurement.distance_mm + " away");
             return measurement.distance_mm;
         }
 

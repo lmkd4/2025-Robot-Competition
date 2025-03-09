@@ -13,7 +13,8 @@ public class BowWheels extends SubsystemBase {
     private final SparkMax motor1;
     private final SparkMax motor2;
 
-    private final DigitalInput ir_sensor = new DigitalInput(0);  // IR sensor on DIO port 0
+    private final DigitalInput ir_sensor = new DigitalInput(0);
+  // IR sensor on DIO port 0
     private static final double kWheelSpeed = 0.4;
 
     public BowWheels(int motor1Port, int motor2Port) {
@@ -29,15 +30,14 @@ public class BowWheels extends SubsystemBase {
     // Command to intake (start moving the wheels in)
     public Command intake() {
         return run(() -> {
-           /*  if (!ir_sensor.get()) {
-                // Only run intake if IR sensor is NOT triggered
+             if (!isIRSensorTriggered()) {
                 motor1.set(kWheelSpeed);
                 motor2.set(-kWheelSpeed);
-            } else {*/
-                // Stop intake when the IR sensor detects an object
-                motor1.set(kWheelSpeed);
+            }
+             else {
+              motor1.set(kWheelSpeed);
                 motor2.set(-kWheelSpeed);
-            
+             }
         });
     }
 

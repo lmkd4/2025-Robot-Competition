@@ -27,12 +27,12 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 import frc.robot.subsystems.BowWheels;
+import frc.robot.commands.AlignWithReef;
 import frc.robot.commands.ElevatorCommand;
+import frc.robot.limelight.Vision;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
-
 
 // command-based is a "declarative" paragrim, so very little robot logic should be in handled in Robot.java
 // strucutre of robot (including subsystems, commands, and button mappings) should be declared here
@@ -44,6 +44,7 @@ public class RobotContainer {
   private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final ClimberPivot m_climberPivot = new ClimberPivot(13, 12);
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
+  private final Vision m_limelight = new Vision();
 
   // change elevator height here!
   private final ElevatorCommand m_elevatorCommandL1 = new ElevatorCommand(m_elevator, 40);  
@@ -51,6 +52,9 @@ public class RobotContainer {
   private final ElevatorCommand m_elevatorCommandL3 = new ElevatorCommand(m_elevator, 40);
   private final ElevatorCommand m_elevatorCommandL4 = new ElevatorCommand(m_elevator, 650);
   private final ElevatorCommand m_elevatorCommandL5 = new ElevatorCommand(m_elevator, 295);
+
+  // align with reef command
+  private final AlignWithReef m_alignWithReef = new AlignWithReef(m_robotDrive, m_limelight);
 
   // joystick initialization
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
@@ -66,6 +70,7 @@ public class RobotContainer {
     m_elevatorPivot.homeSetpoints();
     m_elevatorPivot.setDefaultCommand(m_elevatorPivot.controlPivot());
     m_elevator.setDefaultCommand(m_elevator.getElevatorHeightCommand());
+    m_limelight.setDefaultCommand(m_limelight.displayValues());
 
     m_robotDrive.setDefaultCommand(
         new RunCommand(
@@ -101,7 +106,6 @@ public class RobotContainer {
     // L5 Command
     m_flightStick.button(11).onTrue(m_elevatorCommandL5.andThen(m_elevatorPivot.findSetpoint(-1.29)));
 
-
     // manual pivot control
     m_flightStick.button(1).whileTrue(m_elevatorPivot.adjustSetpointUp());
     m_flightStick.button(2).whileTrue(m_elevatorPivot.adjustSetpointDown());
@@ -116,6 +120,8 @@ public class RobotContainer {
     // manual climber pivot control
     new JoystickButton(m_driverController, 1).whileTrue(m_climberPivot.pivotIn());
     new JoystickButton(m_driverController, 2).whileTrue(m_climberPivot.pivotOut());
+
+    new JoystickButton(m_driverController, 3).whileTrue(m_limelight.followTarget());
   }
 
   // use to pass autonomous command to the main class
