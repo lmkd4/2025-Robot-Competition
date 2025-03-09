@@ -46,11 +46,11 @@ public class RobotContainer {
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
 
   // change elevator height here!
-  private final ElevatorCommand m_elevatorCommandL1 = new ElevatorCommand(m_elevator, 180);  
-  private final ElevatorCommand m_elevatorCommandL2 = new ElevatorCommand(m_elevator, 180);
+  private final ElevatorCommand m_elevatorCommandL1 = new ElevatorCommand(m_elevator, 40);  
+  private final ElevatorCommand m_elevatorCommandL2 = new ElevatorCommand(m_elevator, 110);
   private final ElevatorCommand m_elevatorCommandL3 = new ElevatorCommand(m_elevator, 40);
-  private final ElevatorCommand m_elevatorCommandL4 = new ElevatorCommand(m_elevator, 640);
-  private final ElevatorCommand m_elevatorCommandL5 = new ElevatorCommand(m_elevator, 16);
+  private final ElevatorCommand m_elevatorCommandL4 = new ElevatorCommand(m_elevator, 650);
+  private final ElevatorCommand m_elevatorCommandL5 = new ElevatorCommand(m_elevator, 295);
 
   // joystick initialization
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
@@ -87,10 +87,10 @@ public class RobotContainer {
           m_robotDrive));
 
     // L1 Command
-    m_flightStick.button(7).onTrue(m_elevatorCommandL1.andThen(m_elevatorPivot.findSetpoint(0)));
+    m_flightStick.button(7).onTrue(m_elevatorCommandL1.andThen(m_elevatorPivot.findSetpoint(-1.39)));
 
     // L2 Command
-    m_flightStick.button(8).onTrue(m_elevatorCommandL2.andThen(m_elevatorPivot.findSetpoint(0)));
+    m_flightStick.button(8).onTrue(m_elevatorCommandL2.andThen(m_elevatorPivot.findSetpoint(-1.39)));
 
     // L3 Command
     m_flightStick.button(9).onTrue(m_elevatorCommandL3.andThen(m_elevatorPivot.findSetpoint(1.74)));
@@ -99,18 +99,18 @@ public class RobotContainer {
     m_flightStick.button(10).onTrue(m_elevatorCommandL4.andThen(m_elevatorPivot.findSetpoint(1.74)));
 
     // L5 Command
-    m_flightStick.button(11).onTrue(m_elevatorCommandL5.andThen(m_elevatorPivot.findSetpoint(-0.85)));
+    m_flightStick.button(11).onTrue(m_elevatorCommandL5.andThen(m_elevatorPivot.findSetpoint(-1.29)));
 
 
     // manual pivot control
-    new JoystickButton(m_operatorController, 1).whileTrue(m_elevatorPivot.adjustSetpointUp());
-    new JoystickButton(m_operatorController, 2).whileTrue(m_elevatorPivot.adjustSetpointDown());
+    m_flightStick.button(1).whileTrue(m_elevatorPivot.adjustSetpointUp());
+    m_flightStick.button(2).whileTrue(m_elevatorPivot.adjustSetpointDown());
     // manual elevator control
-    new JoystickButton(m_operatorController, 3).whileTrue(m_elevator.moveUp());
-    new JoystickButton(m_operatorController, 4).whileTrue(m_elevator.moveDown());
+    m_flightStick.button(3).whileTrue(m_elevator.moveUp());
+    m_flightStick.button(4).whileTrue(m_elevator.moveDown());
     // manual elevator pivot control
-    new JoystickButton(m_operatorController, 5).whileTrue(m_bowWheels.intake());
-    new JoystickButton(m_operatorController, 6).whileTrue(m_bowWheels.outake());
+    m_flightStick.button(5).whileTrue(m_bowWheels.intake());
+    m_flightStick.button(6).whileTrue(m_bowWheels.outtake());
 
 
     // manual climber pivot control

@@ -58,6 +58,6 @@ public class ElevatorCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    return Math.abs(m_elevator.getElevatorHeight() - targetDistance) < 10;
+    return (m_elevator.getElevatorHeight() == targetDistance);
   }
 }
