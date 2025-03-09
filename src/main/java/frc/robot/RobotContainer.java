@@ -120,8 +120,6 @@ public class RobotContainer {
     // manual climber pivot control
     new JoystickButton(m_driverController, 1).whileTrue(m_climberPivot.pivotIn());
     new JoystickButton(m_driverController, 2).whileTrue(m_climberPivot.pivotOut());
-
-    new JoystickButton(m_driverController, 3).whileTrue(m_limelight.followTarget());
   }
 
   // use to pass autonomous command to the main class

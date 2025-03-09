@@ -49,12 +49,6 @@ public class Vision extends SubsystemBase {
       return false;
     }
 
-    public Command followTarget() {
-      return run(() -> {
-        m_drive.drive(getX(), 0, 0, false);
-      });
-    }
-
     public Command displayValues() {
       return run(() -> {
         SmartDashboard.putNumber("tx", getX());
