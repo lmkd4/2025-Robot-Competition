@@ -12,8 +12,6 @@ public class ElevatorCommand extends Command {
   private Elevator m_elevator;
   private final int targetDistance;
   
-  
-
   public ElevatorCommand(Elevator subsystem1, int height) {
     m_elevator = subsystem1;
     this.targetDistance = height;
@@ -23,7 +21,6 @@ public class ElevatorCommand extends Command {
   // Called when the command is initially scheduled
   @Override
   public void initialize() {
-    
     // No need to move the elevator here; logic is handled in execute()
   }
 
@@ -31,23 +28,23 @@ public class ElevatorCommand extends Command {
   @Override
   public void execute() {
     double currentDistance = m_elevator.getElevatorHeight();
-    
+
     if (currentDistance == Double.NaN) {
       System.out.println("we have a feedback problem");
       return;
     }
 
-
     if (currentDistance > targetDistance) {
       m_elevator.moveDown1();
-    } 
+    }
+
     else if (currentDistance < targetDistance) {
       m_elevator.moveUp1();
-    } 
+    }
+
     else {
       m_elevator.stop1();
     }
-
 
   }
 
@@ -58,6 +55,6 @@ public class ElevatorCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    return (m_elevator.getElevatorHeight() == targetDistance);
+    return Math.abs(m_elevator.getElevatorHeight() - targetDistance) < 10;
   }
 }

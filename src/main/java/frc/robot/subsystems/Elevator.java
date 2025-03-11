@@ -41,7 +41,7 @@ public class Elevator extends SubsystemBase {
     private final SlewRateLimiter elevatorRateLimiter = new SlewRateLimiter(1);
 
     // Constants (modify these based on your elevator design)
-    private static final double kElevatorSpeed = 0.55;
+    private static final double kElevatorSpeed = 0.35;
     private static final double kP = 0.1;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
@@ -90,6 +90,8 @@ public class Elevator extends SubsystemBase {
 
     public Command getElevatorHeightCommand() {
         return run(() -> {
+            SmartDashboard.putNumber("Target:", getElevatorHeight());
+
             getElevatorHeight();
             motor1.set(0);
             motor2.set(0);

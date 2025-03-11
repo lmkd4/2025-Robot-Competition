@@ -1,64 +1,63 @@
-
 package frc.robot.limelight;
 
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotContainer;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.limelight.LimelightHelpers;
 
 public class Vision extends SubsystemBase {
 
     private final NetworkTable limelightTable;
-    public DriveSubsystem m_drive;
+    private final DriveSubsystem m_drive;
+    private final String limelightName = "limelight"; // Set to actual Limelight name
 
-    public Vision() {
-        // Get the Limelight NetworkTable instance
-        limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
+    public Vision(DriveSubsystem drive) {
+        this.limelightTable = NetworkTableInstance.getDefault().getTable(limelightName);
+        this.m_drive = drive;
     }
 
-    public double getX() {
-        // tx - Horizontal Offset From Crosshair To Target (-27 degrees to 27 degrees)
-        return limelightTable.getEntry("tx").getDouble(0.0);
+    public double getTx() {
+        return LimelightHelpers.getTX(limelightName);
     }
 
-    public double getY() {
-        // ty - Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees)
-        return limelightTable.getEntry("ty").getDouble(0.0);
+    public double getTy() {
+        return LimelightHelpers.getTY(limelightName);
     }
 
     public double getArea() {
-        // ta - Target Area (0% of image to 100% of image)
-        return limelightTable.getEntry("ta").getDouble(0.0);
+        return LimelightHelpers.getTA(limelightName);
     }
 
     public boolean hasValidTarget() {
-        // tv - Whether the limelight has any valid targets (0 or 1)
-        return limelightTable.getEntry("tv").getDouble(0.0) == 1.0;
+        return LimelightHelpers.getTV(limelightName);
     }
 
     public void setLEDMode(int mode) {
-        // Set LED mode: 0 = pipeline default, 1 = off, 2 = blink, 3 = on
         limelightTable.getEntry("ledMode").setNumber(mode);
     }
 
-    public Boolean conditional() {
-      return false;
+    public void setCameraMode(int mode) {
+        limelightTable.getEntry("camMode").setNumber(mode);
+    }
+
+    public Command followTarget() {
+        return run(() -> {
+            if (hasValidTarget()) {
+                m_drive.drive(getTx() * 0.1, 0, 0, false);
+            } else {
+                m_drive.drive(0, 0, 0, false);
+            }
+        });
     }
 
     public Command displayValues() {
-      return run(() -> {
-        SmartDashboard.putNumber("tx", getX());
-        SmartDashboard.putNumber("ty", getY());
-        SmartDashboard.putNumber("ta", getArea());
-      });
-    }
-
-    public void setCameraMode(int mode) {
-        // Set camera mode: 0 = Vision processor, 1 = Driver Camera (no processing)
-        limelightTable.getEntry("camMode").setNumber(mode);
+        return run(() -> {
+            SmartDashboard.putNumber("tx", getTx());
+            SmartDashboard.putNumber("ty", getTy());
+            SmartDashboard.putNumber("ta", getArea());
+        });
     }
 }

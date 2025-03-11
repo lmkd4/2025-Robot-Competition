@@ -55,7 +55,6 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kRearRightTurningCanId,
       DriveConstants.kBackRightChassisAngularOffset);
 
-  private final Vision m_limelight = new Vision();
 
   // swerve drive modules in an array for easier access
   // convert MAXSwerveModule[] to SwerveModuleState[]
@@ -178,7 +177,7 @@ public class DriveSubsystem extends SubsystemBase {
     m_rearRight.setDesiredState(swerveModuleStates[3]);
   }
 
-  // wheel lock
+  // wheel lock, NOT x directional
   public void setX() {
     m_frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
     m_frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
@@ -209,10 +208,11 @@ public class DriveSubsystem extends SubsystemBase {
     m_gyro.reset();
   }
 
-  // robot heading from -180 to 180
+  // yaw angle -180 to 180
   public double getHeading() {
     return Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)).getDegrees();
   }
+
 
   public double getTurnRate() {
     return m_gyro.getRate(IMUAxis.kZ) * (DriveConstants.kGyroReversed ? -1.0 : 1.0);

@@ -44,7 +44,8 @@ public class RobotContainer {
   private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final ClimberPivot m_climberPivot = new ClimberPivot(13, 12);
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
-  private final Vision m_limelight = new Vision();
+
+  private final Vision lime = new Vision(m_robotDrive);
 
   // change elevator height here!
   private final ElevatorCommand m_elevatorCommandL1 = new ElevatorCommand(m_elevator, 40);  
@@ -54,7 +55,7 @@ public class RobotContainer {
   private final ElevatorCommand m_elevatorCommandL5 = new ElevatorCommand(m_elevator, 295);
 
   // align with reef command
-  private final AlignWithReef m_alignWithReef = new AlignWithReef(m_robotDrive, m_limelight);
+  //private final AlignWithReef m_alignWithReef = new AlignWithReef(m_robotDrive, reefLight);
 
   // joystick initialization
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
@@ -70,7 +71,7 @@ public class RobotContainer {
     m_elevatorPivot.homeSetpoints();
     m_elevatorPivot.setDefaultCommand(m_elevatorPivot.controlPivot());
     m_elevator.setDefaultCommand(m_elevator.getElevatorHeightCommand());
-    m_limelight.setDefaultCommand(m_limelight.displayValues());
+    lime.setDefaultCommand(lime.displayValues());
 
     m_robotDrive.setDefaultCommand(
         new RunCommand(
@@ -116,6 +117,7 @@ public class RobotContainer {
     m_flightStick.button(5).whileTrue(m_bowWheels.intake());
     m_flightStick.button(6).whileTrue(m_bowWheels.outtake());
 
+    new JoystickButton(m_driverController, 3).whileTrue(lime.followTarget());
 
     // manual climber pivot control
     new JoystickButton(m_driverController, 1).whileTrue(m_climberPivot.pivotIn());
