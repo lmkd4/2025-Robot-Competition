@@ -14,6 +14,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -26,6 +27,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Robot;
 import frc.robot.Constants.DriveConstants;
@@ -82,42 +84,10 @@ public class DriveSubsystem extends SubsystemBase {
       });
 
   public DriveSubsystem() {
-    /*/
-      AutoBuilder.configure(
-              this::getPose, // robot pose supplier
-              this::resetOdometry, // method to reset odometry
-              this::getRobotRelativeSpeeds, // ChassisSpeeds supplier
-              (speeds, feedforwards) -> driveRobotRelative(speeds), // drive the robot given ROBOT RELATIVE ChassisSpeeds
-              new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-                      new PIDConstants(5.0, 0.0, 0.0), // translation PID constants
-                      new PIDConstants(5.0, 0.0, 0.0) // rotation PID constants
-              ),
-              config, 
-              () -> {
-                /*
-                 * boolean supplier controls path to be mirrored for the red alliance
-                 * origin remains on blue side
-                 
-                var alliance = DriverStation.getAlliance();
-                if (alliance.isPresent()) {
-                  return alliance.get() == DriverStation.Alliance.Red;
-                }
-                return false;
-              },
-              this // reference to this subsystem to set requirements
-            );
-          */
+    
   }
 
-  /*
-  public ChassisSpeeds getRobotRelativeSpeeds() {
-    return DriveConstants.kDriveKinematics.toChassisSpeeds(moduleStates);
-  }
 
-  public void driveRobotRelative(ChassisSpeeds speeds) {
-    setModuleStates(DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds));
-  }
-  */ 
   
   @Override
   public void periodic() {
@@ -135,6 +105,13 @@ public class DriveSubsystem extends SubsystemBase {
   public Pose2d getPose() {
     return m_odometry.getPoseMeters();
   }
+
+  public void getImu() {
+    SmartDashboard.putNumber("X Acceleration", m_gyro.getAccelX());
+    SmartDashboard.putNumber("Y Acceleration", m_gyro.getAccelY());
+  }
+
+
 
   public void resetOdometry(Pose2d pose) {
     m_odometry.resetPosition(
@@ -212,7 +189,6 @@ public class DriveSubsystem extends SubsystemBase {
   public double getHeading() {
     return Rotation2d.fromDegrees(m_gyro.getAngle(IMUAxis.kZ)).getDegrees();
   }
-
 
   public double getTurnRate() {
     return m_gyro.getRate(IMUAxis.kZ) * (DriveConstants.kGyroReversed ? -1.0 : 1.0);

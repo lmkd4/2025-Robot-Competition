@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Elevator;
@@ -12,6 +13,12 @@ public class ElevatorCommand extends Command {
   private Elevator m_elevator;
   private final int targetDistance;
   
+  private final double kP = 0.0;
+  private final double kI = 0.0;
+  private final double kD = 0.0;
+ 
+  private PIDController elevatorController = new PIDController(kP, kI, kD);
+
   public ElevatorCommand(Elevator subsystem1, int height) {
     m_elevator = subsystem1;
     this.targetDistance = height;
@@ -28,6 +35,8 @@ public class ElevatorCommand extends Command {
   @Override
   public void execute() {
     double currentDistance = m_elevator.getElevatorHeight();
+
+    //elevator 
 
     if (currentDistance == Double.NaN) {
       System.out.println("we have a feedback problem");

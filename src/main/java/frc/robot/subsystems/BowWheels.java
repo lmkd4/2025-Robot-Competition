@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.DigitalInput;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.LimitSwitchConfig;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 public class BowWheels extends SubsystemBase {
@@ -47,6 +48,20 @@ public class BowWheels extends SubsystemBase {
             // Always run the outtake regardless of IR sensor status
             motor1.set(-kWheelSpeed);
             motor2.set(kWheelSpeed);
+        });
+    }
+
+    public Command runUntilTripped() {
+        return runEnd(() -> {
+            motor1.set(-kWheelSpeed);
+            motor2.set(kWheelSpeed);
+
+            }, () -> { 
+                
+            if (ir_sensor.get() == false) {
+                motor1.set(0);
+                motor2.set(0);
+            }
         });
     }
 
