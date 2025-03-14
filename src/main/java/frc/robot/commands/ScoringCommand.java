@@ -1,58 +1,50 @@
-/*package frc.robot.commands;
+package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 
 public class ScoringCommand extends Command {
-  @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   
-  private Elevator m_elevator;
+  private final Elevator m_elevator;
   private final ElevatorPivot m_elevatorPivot;
-  private int targetConfig;
 
-  ElevatorCommand m_elevatorCommand = new ElevatorCommand(m_elevator, targetConfig);
+  private final double targetDistance;
+  private final double pivotSetpoint;
 
-  public ScoringCommand(Elevator subsystem1, ElevatorPivot subsystem2, int targetDistance) {
-    m_elevator = subsystem1;
-    m_elevatorPivot = subsystem2;
+  public ScoringCommand(Elevator elevator, ElevatorPivot pivot, double height, double angle) {
+    m_elevator = elevator;
+    m_elevatorPivot = pivot;
     
-    this.targetConfig = targetDistance;
-    addRequirements(subsystem1, subsystem2);
+    this.targetDistance = height;
+    this.pivotSetpoint = angle;
   }
 
-  // Called when the command is initially scheduled
   @Override
   public void initialize() {
-
+    // Reset the PID controllers to remove any previous state
+    // Explicitly re-set the setpoints
+    m_elevator.setElevatorSetpoint(targetDistance);
+    m_elevatorPivot.setPivotSetpoint(pivotSetpoint);
   }
 
-  // Called every time the scheduler runs while the command is scheduled
   @Override
-  public void execute() {
-    switch(targetConfig) {
-
-        case 180:
-            m_elevatorPivot.findSetpoint(0.4).andThen(m_elevatorCommand);
-          break;
-
-        case 190:
-            m_elevatorPivot.findSetpoint(0.5).andThen(m_elevatorCommand);
-          break;
-
-        
-        default:
-
-      }
+  public void execute() {    
+    m_elevator.controlElevator();  // Updates elevator control based on feedback
+    m_elevatorPivot.controlPivot(); // Adjusts pivot position dynamically
   }
 
   @Override
   public void end(boolean interrupted) {
-    
+    m_elevator.stop();
+    m_elevatorPivot.stop();
   }
 
   @Override
   public boolean isFinished() {
-    return m_elevatorCommand.isFinished();
+      double elevatorError = Math.abs(targetDistance - m_elevator.getElevatorHeight());
+      double pivotError = Math.abs(Math.abs(m_elevatorPivot.getPivotAngle()) - pivotSetpoint);
+      // Only finish if we're actually at the correct position
+      return (elevatorError <= 10 && pivotError <= 0.005);
   }
-}*/
+}

@@ -15,20 +15,24 @@ public class AlignWithReef extends Command {
     private final DriveSubsystem m_drive;
     public Vision m_lime;
     
-    private static final double kP = 0.1;
+    private static final double kP = 0.2;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
     public double x;
     public double y;
 
+    private String leftOrRight;
+
     private PIDController xTranslationController = new PIDController(kP, kI, kD);
     private PIDController yTranslationController = new PIDController(kP, kI, kD);
 
 
-    public AlignWithReef(DriveSubsystem subsystem1, Vision subsystem2) {
+    public AlignWithReef(DriveSubsystem subsystem1, Vision subsystem2, String orientation) {
         m_drive = subsystem1;
         m_lime = subsystem2;
+
+        this.leftOrRight = orientation;
 
         addRequirements(subsystem1, subsystem2);
     }
@@ -40,6 +44,19 @@ public class AlignWithReef extends Command {
   
     @Override
     public void execute() {
+
+        switch (leftOrRight) {
+
+        case "L":
+          double xTranslation = xTranslationController.calculate(x, 1);
+          double yTranslation = yTranslationController.calculate(y, -22);
+
+          break;
+
+        case "R":
+
+          break;
+      }
 
       Pose3d pose = m_lime.getBotPose3d();
             double t[] = { pose.getX(), pose.getY(), pose.getZ() };
@@ -83,13 +100,18 @@ public class AlignWithReef extends Command {
 
         Pose3d pose3d = m_lime.getBotPose3d();
 
+
         x = -pose3d.getX();
-        y = pose3d.getZ();
+        y = -m_lime.getArea();
 
-        double xTranslation = xTranslationController.calculate(x, 0.0);
-        double yTranslation = yTranslationController.calculate(y, -1.5);
+        // right side
+        double xTranslation = xTranslationController.calculate(x, .1);
+        double yTranslation = yTranslationController.calculate(y, -4);
 
-        m_drive.drive(xTranslation, 0, 0.0, false);
+        // left side
+
+
+        m_drive.drive(xTranslation, yTranslation, 0.0, false);
     }
   
     @Override

@@ -36,33 +36,25 @@ public class Elevator extends SubsystemBase {
     private final SparkMax motor2;
 
     // Encoder and PID controller
-    private final PIDController feedback = new PIDController(kP, kI, kD);
-    private final SimpleMotorFeedforward feedfoward = new SimpleMotorFeedforward(0.1, 0.2);
-    private final SlewRateLimiter elevatorRateLimiter = new SlewRateLimiter(1);
+    public final PIDController elevatorController;
 
-    // Constants (modify these based on your elevator design)
-    private static final double kElevatorSpeed = 0.35;
-    private static final double kP = 0.1;
+    private static final double kP = 0.01;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
     private static double elevatorSetpoint = 0;
-    
-    private static final double kMaxHeight = 540.0; // Example max position
-    private static final double kMinHeight = 75.0;
 
-    private static final double lowLim = 0;
-    private static final double highLim = 0;
     private LaserCan lc;
 
     public Elevator(int motor1Port, int motor2Port) {
         motor1 = new SparkMax(motor1Port, MotorType.kBrushless);
         motor2 = new SparkMax(motor2Port, MotorType.kBrushless);
 
+        elevatorController = new PIDController(kP, kI, kD);
+        elevatorController.setTolerance(0.5);
+
         CanBridge.runTCP();
-
         lc = new LaserCan(0);
-
     
         try {
             lc.setRangingMode(LaserCan.RangingMode.SHORT);
@@ -71,23 +63,58 @@ public class Elevator extends SubsystemBase {
         } catch (ConfigurationFailedException e) {
             System.out.println("Configuration failed! " + e);
         }
-
         System.out.println("finished elevator config");
-
     }
 
     public double getElevatorHeight() {
-
-        LaserCan.Measurement measurement = lc.getMeasurement();
-
+        Measurement measurement = lc.getMeasurement();
         if (measurement != null && measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT) {
             SmartDashboard.putNumber("Target:", measurement.distance_mm);
             return measurement.distance_mm;
         }
-
         return Double.NaN;  
     }
 
+    public void setElevatorSetpoint(double setpoint) {
+        elevatorSetpoint = setpoint;
+        SmartDashboard.putNumber("Elevator Setpoint", elevatorSetpoint);
+    }
+
+    public void controlElevator() {
+        double currentHeight = getElevatorHeight();
+        
+        if (!Double.isNaN(currentHeight)) {
+            double error = elevatorSetpoint - currentHeight;
+            // DEADZONE: Don't move if the error is small
+            if (Math.abs(error) < 10.0) { // Adjust this value as needed
+                motor1.set(0);
+                motor2.set(0);
+                return;
+            }
+            double output = elevatorController.calculate(currentHeight, elevatorSetpoint);
+            // Clamp small outputs to prevent jittering at low speeds
+            if (Math.abs(output) < 0.05) {  // Adjust threshold if needed
+                output = 0;
+            }
+            motor1.set(output);
+            motor2.set(-output);
+        }
+    }    
+/*
+    public void controlElevator() {
+        
+        double currentHeight = getElevatorHeight();
+        if (!Double.isNaN(currentHeight)) {
+            double output = elevatorController.calculate(currentHeight, elevatorSetpoint);
+            motor1.set(output);
+            motor2.set(-output);
+        }
+    }
+*/
+    public Command moveToHeight(double height) {
+        return run(() -> setElevatorSetpoint(height));
+    }   
+    
     public Command getElevatorHeightCommand() {
         return run(() -> {
             SmartDashboard.putNumber("Target:", getElevatorHeight());
@@ -102,10 +129,6 @@ public class Elevator extends SubsystemBase {
         return false;
     }
 
-    public void stop1() {
-        motor1.set(0);
-        motor2.set(0);
-    }
     public Command stop() {
         return run(() -> {
             motor1.set(0);
@@ -113,17 +136,22 @@ public class Elevator extends SubsystemBase {
         });
     }
 
+    public boolean isStable() {
+        return Math.abs(elevatorController.getVelocityError()) < 1.0; // Ensure it's not moving
+    }
+    
+    
     public Command moveUp() {
         return run(() -> {
-            motor1.set(kElevatorSpeed);
-            motor2.set(-kElevatorSpeed);
+            motor1.set(.2);
+            motor2.set(-.2);
         });
     }
 
     public Command moveDown() {
         return run(() -> {
-            motor1.set(-kElevatorSpeed);
-            motor2.set(kElevatorSpeed);
+            motor1.set(-.2);
+            motor2.set(.2);
         });
     }
 
@@ -131,14 +159,17 @@ public class Elevator extends SubsystemBase {
         return false;
     }
     
+    /*
     // necessary for command
     public void moveUp1() {
         motor1.set(kElevatorSpeed);
         motor2.set(-kElevatorSpeed);
     }
+    
 
     public void moveDown1() {
         motor1.set(-kElevatorSpeed);
         motor2.set(kElevatorSpeed);
     }
+    */
 }

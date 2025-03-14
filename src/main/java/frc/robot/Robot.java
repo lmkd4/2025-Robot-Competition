@@ -21,6 +21,7 @@ public class Robot extends TimedRobot {
 
   // autonomous option strings
   private static final String kDefaultAuto = "2 Note Auto Center";
+  private static final String kAuto1 = "leave community";
   
   // autonomous stuff
   private String m_autoSelected;
@@ -33,6 +34,7 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putData("Auto Choices", m_chooser);
     m_chooser.setDefaultOption("leave and score 1", kDefaultAuto);
+    m_chooser.addOption("leave community", kAuto1);
   }
 
   @Override
@@ -59,13 +61,11 @@ public class Robot extends TimedRobot {
       case kDefaultAuto:
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
       break;
+
+      case kAuto1:
+        m_autonomousCommand = m_robotContainer.leaveCommunityCommand();
     }
         
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }

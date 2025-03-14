@@ -51,6 +51,14 @@ public class BowWheels extends SubsystemBase {
         });
     }
 
+    public Command stop() {
+        return run(() -> {
+            // Always run the outtake regardless of IR sensor status
+            motor1.set(0);
+            motor2.set(0);
+        });
+    }
+    
     public Command runUntilTripped() {
         return runEnd(() -> {
             motor1.set(-kWheelSpeed);

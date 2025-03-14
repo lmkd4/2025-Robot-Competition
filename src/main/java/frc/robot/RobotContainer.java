@@ -15,8 +15,10 @@ import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -30,7 +32,7 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 import frc.robot.subsystems.BowWheels;
 import frc.robot.commands.AlignWithReef;
-import frc.robot.commands.ElevatorCommand;
+import frc.robot.commands.ScoringCommand;
 import frc.robot.limelight.Vision;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -42,21 +44,21 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // robot subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final Elevator m_elevator = new Elevator(14, 15); // CAN ID's
-  private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
+  public final Elevator m_elevator = new Elevator(14, 15); // CAN ID's
+  public final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final ClimberPivot m_climberPivot = new ClimberPivot(13, 12);
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
 
-  private final Vision reefLime = new Vision(m_robotDrive);
+  public final Vision reefLime = new Vision(m_robotDrive);
 
   // change elevator height here!
-  private final ElevatorCommand m_elevatorCommandL1 = new ElevatorCommand(m_elevator, 40);  
-  private final ElevatorCommand m_elevatorCommandL2 = new ElevatorCommand(m_elevator, 110);
-  private final ElevatorCommand m_elevatorCommandL3 = new ElevatorCommand(m_elevator, 40);
-  private final ElevatorCommand m_elevatorCommandL4 = new ElevatorCommand(m_elevator, 650);
-  private final ElevatorCommand m_elevatorCommandL5 = new ElevatorCommand(m_elevator, 295);
+  private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
+  private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 110, -1.39);
+  private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.74);
+  private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
+  private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.29);
 
-  private final AlignWithReef alignWithReef = new AlignWithReef(m_robotDrive, reefLime);
+  private final AlignWithReef alignWithReef = new AlignWithReef(m_robotDrive, reefLime, "L");
 
   // align with reef command
   //private final AlignWithReef m_alignWithReef = new AlignWithReef(m_robotDrive, reefLight);
@@ -98,8 +100,30 @@ public class RobotContainer {
           m_robotDrive));
 
     // L1 Command
-    m_flightStick.button(7).onTrue(Commands.parallel(m_elevatorCommandL1, m_elevatorPivot.findSetpoint(-1.39)));
 
+    m_flightStick.button(7).onTrue(kScoringCommandL1.andThen(m_elevator.stop()));
+
+    m_flightStick.button(8).onTrue(kScoringCommandL2.andThen(m_elevator.stop()));
+
+    m_flightStick.button(9).onTrue(kScoringCommandL3.andThen(m_elevator.stop()));
+
+    m_flightStick.button(10).onTrue(kScoringCommandL4.andThen(m_elevator.stop()));
+
+    m_flightStick.button(11).onTrue(kScoringCommandL5.andThen(m_elevator.stop()));
+
+
+    /*
+    m_flightStick.button(7).onTrue(kScoringCommandL1.andThen(m_elevator.stop()));
+
+    m_flightStick.button(8).onTrue(kScoringCommandL2.andThen(m_elevator.stop()));
+
+    m_flightStick.button(9).onTrue(kScoringCommandL3.andThen(m_elevator.stop()));
+    
+    m_flightStick.button(10).onTrue(kScoringCommandL4.andThen(m_elevator.stop()));
+
+    m_flightStick.button(11).onTrue(kScoringCommandL5.andThen(m_elevator.stop()));
+    */
+    /*
     // L2 Command
     m_flightStick.button(8).onTrue(Commands.parallel(m_elevatorCommandL2, m_elevatorPivot.findSetpoint(-1.39)));
 
@@ -111,6 +135,7 @@ public class RobotContainer {
 
     // L5 Command
     m_flightStick.button(11).onTrue(m_elevatorCommandL5.alongWith(m_elevatorPivot.findSetpoint(-1.29)));
+    */
 
     // manual pivot control
     m_flightStick.button(1).whileTrue(m_elevatorPivot.adjustSetpointUp());
@@ -143,7 +168,7 @@ public class RobotContainer {
         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
         .setKinematics(DriveConstants.kDriveKinematics);
 
-    // all units in meters, s curve trajectory example
+    // all units in meters, drive forward ONLY
     Trajectory traj = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
@@ -167,7 +192,63 @@ public class RobotContainer {
 
     m_robotDrive.resetOdometry(traj.getInitialPose());
 
+    ScoringCommand autoScoringCommand = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
+
+    Command score = new StartEndCommand(
+        () -> m_bowWheels.outtake(),
+        () -> m_bowWheels.stop(),
+        m_bowWheels
+    ).withTimeout(2.0);
+    
     return swerveControllerCommand.andThen(
-        () -> m_robotDrive.drive(0, 0, 0, false));
+    autoScoringCommand.withTimeout(3.0).andThen(
+        m_elevator.stop().withTimeout(3).andThen(score).andThen(
+            () -> m_robotDrive.drive(0, 0, 0, false))));
+    /*
+    return swerveControllerCommand.andThen(
+        autoScoringCommand.andThen(
+            m_elevator.stop().andThen(
+                new InstantCommand(m_bowWheels::outtake).andThen(
+                    () -> m_robotDrive.drive(0, 0, 0, false)
+                )
+            )
+        )
+    );*/
+  }
+
+  public Command leaveCommunityCommand() {
+
+    // Leave Community Trajectory
+    TrajectoryConfig config = new TrajectoryConfig(
+        AutoConstants.kMaxSpeedMetersPerSecond,
+        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+        .setKinematics(DriveConstants.kDriveKinematics);
+
+    // all units in meters, drive forward ONLY
+    Trajectory traj = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(0, 0, new Rotation2d(0)),
+        List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
+        new Pose2d(-1.5, 0, new Rotation2d(0)),
+        config);
+
+    var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        traj,
+        m_robotDrive::getPose,
+        DriveConstants.kDriveKinematics,
+
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
+
+    m_robotDrive.resetOdometry(traj.getInitialPose());
+
+
+    return swerveControllerCommand.andThen((() -> m_robotDrive.drive(0, 0, 0, false)));
   }
 }

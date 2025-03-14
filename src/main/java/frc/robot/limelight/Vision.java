@@ -64,7 +64,7 @@ public class Vision extends SubsystemBase {
             Pose3d pose3d = getBotPose3d();
 
             double x = pose3d.getX();
-            double y = pose3d.getZ();
+            double y = getArea();
 
             double xTranslation = xTranslationController.calculate(x, 0);
             double yTranslation = yTranslationController.calculate(y, -1.5);

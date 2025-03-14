@@ -17,15 +17,15 @@ public class ElevatorPivot extends SubsystemBase {
     private final SparkFlex motor1;
     private final SparkAbsoluteEncoder encoder;
 
-    private static final double kP = 0.2;  
+    private static final double kP = 0.25;  
     private static final double kI = 0; 
     private static final double kD = 0;  
 
-    private static double pivotSetpoint = 0;
+    public static double pivotSetpoint = 0;
 
     private static final double kAngularVelocity = 0.3;
 
-    private final PIDController feedback = new PIDController(kP, kI, kD);
+    public final PIDController feedback = new PIDController(kP, kI, kD);
     private final ArmFeedforward feedforward = new ArmFeedforward(0, 0.04, 0);
     private final SlewRateLimiter pivotRateLimiter = new SlewRateLimiter(1);
 
@@ -40,6 +40,14 @@ public class ElevatorPivot extends SubsystemBase {
         pivotSetpoint = pivotRateLimiter.calculate(setpoint);
     }
 
+    public boolean isStable() {
+        return Math.abs(feedback.getVelocityError()) < 0.05; // Ensure it's not moving
+    }
+
+    public boolean setpointWithinThreshold(double setpoint) {
+        return (getPivotAngle() - setpoint) <= 0.005;
+    }
+    
     // **Set home position based on current encoder value**
     public void homeSetpoints() {
         pivotSetpoint = getPivotAngle();
@@ -88,7 +96,7 @@ public class ElevatorPivot extends SubsystemBase {
     }
 
     public Command stop() {
-        return runOnce(() -> motor1.set(0));
+        return run(() -> motor1.set(0));
     }
 
     public Command pivotOutCommand() {
