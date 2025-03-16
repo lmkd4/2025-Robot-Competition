@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -22,6 +23,7 @@ public class Robot extends TimedRobot {
   // autonomous option strings
   private static final String kDefaultAuto = "2 Note Auto Center";
   private static final String kAuto1 = "leave community";
+  private static final String kAuto2 = "do nothing";
   
   // autonomous stuff
   private String m_autoSelected;
@@ -33,8 +35,9 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();
 
     SmartDashboard.putData("Auto Choices", m_chooser);
-    m_chooser.setDefaultOption("leave and score 1", kDefaultAuto);
-    m_chooser.addOption("leave community", kAuto1);
+    m_chooser.setDefaultOption("do nothing", kDefaultAuto);
+    m_chooser.addOption("leave", kAuto1);
+    m_chooser.addOption("leave and score 1", kAuto2);
   }
 
   @Override
@@ -59,11 +62,16 @@ public class Robot extends TimedRobot {
 
     switch(m_autoSelected) {
       case kDefaultAuto:
-        m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-      break;
+        m_autonomousCommand = m_robotContainer.leaveCommunityCommand();
+        break;
 
       case kAuto1:
         m_autonomousCommand = m_robotContainer.leaveCommunityCommand();
+        break;
+
+      case kAuto2:
+        m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+        break;
     }
         
     if (m_autonomousCommand != null) {

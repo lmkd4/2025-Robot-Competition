@@ -33,8 +33,6 @@ public class AlignWithReef extends Command {
         m_lime = subsystem2;
 
         this.leftOrRight = orientation;
-
-        addRequirements(subsystem1, subsystem2);
     }
 
     @Override

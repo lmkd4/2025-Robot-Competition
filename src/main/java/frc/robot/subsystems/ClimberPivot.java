@@ -23,6 +23,13 @@ public class ClimberPivot extends SubsystemBase {
     // Motors
     private final SparkFlex motor1;
     private final SparkFlex motor2;
+
+
+    // REMEMBER TO PROPERLY MODIFY IF STATEMENTS
+    private double min = 0.19;
+
+    private final SparkAbsoluteEncoder encoder;
+
     
     // Constants (modify these based on your elevator design)
     private static final double kPivotSpeed = 1;
@@ -34,23 +41,45 @@ public class ClimberPivot extends SubsystemBase {
         motor1 = new SparkFlex(motor1Port, MotorType.kBrushless);
         motor2 = new SparkFlex(motor2Port, MotorType.kBrushless);
 
+        encoder = motor2.getAbsoluteEncoder();
+
         setDefaultCommand(new RunCommand(() -> {
             motor1.set(0.0);
             motor2.set(0.0);
+
+            SmartDashboard.putNumber("pivot encoder", encoder.getPosition());
         }, this));
+    }
+
+    public double getClimberAngle() {
+        return encoder.getPosition();
     }
 
     public Command pivotIn() {
         return new RunCommand(() -> {
             motor1.set(kPivotSpeed);
             motor2.set(-kPivotSpeed);
-        }, this);
+
+            
+            if (getClimberAngle() <= min) {
+                motor1.set(0);
+                motor2.set(0);
+            }
+
+        });
     }
 
     public Command slowPivotIn() {
         return new RunCommand(() -> {
             motor1.set(0.35);
             motor2.set(-0.35);
+
+            
+            if (getClimberAngle() <= min) {
+                motor1.set(0);
+                motor2.set(0);
+            }
+
         });
     }
 
@@ -58,6 +87,19 @@ public class ClimberPivot extends SubsystemBase {
         return new RunCommand(() -> {
             motor1.set(-kPivotSpeed);
             motor2.set(kPivotSpeed);
-        }, this);
+
+            /*
+            if (getClimberAngle() <= max) {
+                motor1.set(0);
+                motor2.set(0);
+            } */
+
+        });
+    }
+
+    public Command displayEncoderInfo() {
+        return run(() -> {
+            SmartDashboard.putNumber("Climber Pivot Encoder: ", getClimberAngle());
+        });
     }
 }

@@ -16,16 +16,11 @@ public class BowWheels extends SubsystemBase {
 
     private final DigitalInput ir_sensor = new DigitalInput(0);
   // IR sensor on DIO port 0
-    private static final double kWheelSpeed = 0.4;
+    private final double kWheelSpeed = 0.4;
 
     public BowWheels(int motor1Port, int motor2Port) {
         motor1 = new SparkMax(motor1Port, MotorType.kBrushless);
         motor2 = new SparkMax(motor2Port, MotorType.kBrushless);
-
-        setDefaultCommand(new RunCommand(() -> {
-            motor1.set(0.0);
-            motor2.set(0.0);
-        }, this));
     }
 
     // Command to intake (start moving the wheels in)
@@ -42,6 +37,10 @@ public class BowWheels extends SubsystemBase {
         });
     }
 
+    public void runWheelsInAuto() {
+        motor1.set(-kWheelSpeed);
+        motor2.set(kWheelSpeed);
+    }
     // Command to outtake (move the wheels out)
     public Command outtake() {
         return run(() -> {
