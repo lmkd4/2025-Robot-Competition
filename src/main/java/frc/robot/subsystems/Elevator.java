@@ -30,12 +30,10 @@ import java.lang.Double;
 import edu.wpi.first.wpilibj.I2C;
 
 public class Elevator extends SubsystemBase {
-    
-    // Motors
+ 
     private final SparkMax motor1;
     private final SparkMax motor2;
 
-    // Encoder and PID controller
     public final PIDController elevatorController;
 
     private static final double kP = 0.01;
@@ -43,6 +41,7 @@ public class Elevator extends SubsystemBase {
     private static final double kD = 0.0;
 
     private static double elevatorSetpoint = 0;
+    private final double kElevatorSpeed = 0.2;
 
     private LaserCan lc;
 
@@ -85,32 +84,23 @@ public class Elevator extends SubsystemBase {
         
         if (!Double.isNaN(currentHeight)) {
             double error = elevatorSetpoint - currentHeight;
-            // DEADZONE: Don't move if the error is small
-            if (Math.abs(error) < 10.0) { // Adjust this value as needed
+            
+            if (Math.abs(error) < 10.0) {
                 motor1.set(0);
                 motor2.set(0);
                 return;
             }
             double output = elevatorController.calculate(currentHeight, elevatorSetpoint);
-            // Clamp small outputs to prevent jittering at low speeds
-            if (Math.abs(output) < 0.05) {  // Adjust threshold if needed
+           
+            if (Math.abs(output) < 0.05) { 
                 output = 0;
             }
+
             motor1.set(output);
             motor2.set(-output);
         }
     }    
-/*
-    public void controlElevator() {
-        
-        double currentHeight = getElevatorHeight();
-        if (!Double.isNaN(currentHeight)) {
-            double output = elevatorController.calculate(currentHeight, elevatorSetpoint);
-            motor1.set(output);
-            motor2.set(-output);
-        }
-    }
-*/
+
     public Command moveToHeight(double height) {
         return run(() -> setElevatorSetpoint(height));
     }   
@@ -137,39 +127,29 @@ public class Elevator extends SubsystemBase {
     }
 
     public boolean isStable() {
-        return Math.abs(elevatorController.getVelocityError()) < 1.0; // Ensure it's not moving
+        return Math.abs(elevatorController.getVelocityError()) < 1.0;
     }
     
-    
     public Command moveUp() {
-        return run(() -> {
-            motor1.set(.2);
-            motor2.set(-.2);
-        });
+        return new InstantCommand(() -> {
+            motor1.set(kElevatorSpeed);
+            motor2.set(-kElevatorSpeed );
+        }, this);
     }
 
     public Command moveDown() {
-        return run(() -> {
-            motor1.set(-.2);
-            motor2.set(.2);
-        });
+        return new InstantCommand(() -> {
+            motor1.set(-kElevatorSpeed);
+            motor2.set(kElevatorSpeed);
+        }, this);
     }
 
     public boolean condition() {
         return false;
     }
-    
-    /*
-    // necessary for command
-    public void moveUp1() {
-        motor1.set(kElevatorSpeed);
-        motor2.set(-kElevatorSpeed);
-    }
-    
 
-    public void moveDown1() {
-        motor1.set(-kElevatorSpeed);
-        motor2.set(kElevatorSpeed);
+    @Override
+    public void periodic() {
+        
     }
-    */
 }

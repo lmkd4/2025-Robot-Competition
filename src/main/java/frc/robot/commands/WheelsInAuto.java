@@ -6,13 +6,13 @@ import frc.robot.subsystems.BowWheels;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 
-public class ScoreInAuto extends Command {
+public class WheelsInAuto extends Command {
   
  private final BowWheels m_bowWheels;
  private final Timer timer = new Timer();
 
 
-  public ScoreInAuto(BowWheels wheels) {
+  public WheelsInAuto(BowWheels wheels) {
     m_bowWheels = wheels;
   }
 

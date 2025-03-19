@@ -19,12 +19,19 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import java.util.List;
+import java.util.Set;
+import java.util.jar.Attributes.Name;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
@@ -32,12 +39,13 @@ import frc.robot.subsystems.ClimberPivot;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.BowWheels;
 import frc.robot.commands.AlignWithReef;
 import frc.robot.commands.ElevatorCommand;
-import frc.robot.commands.ScoreInAuto;
+import frc.robot.commands.FindHuman;
+import frc.robot.commands.WheelsInAuto;
 import frc.robot.commands.ScoringCommand;
-import frc.robot.limelight.Vision;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -53,9 +61,13 @@ public class RobotContainer {
   private final ClimberPivot m_climberPivot = new ClimberPivot(13, 12);
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
 
-  public final Vision reefLime = new Vision(m_robotDrive);
-
-  //private Elevator m_elevator;
+  /*
+  public final Vision reefLime = new Vision(m_robotDrive, "reefLime");
+  public final Vision humanLime = new Vision(m_robotDrive, "humanLime");
+  /*
+   * 
+   */
+  public final Vision lime = new Vision(m_robotDrive);
 
   // change elevator height here!
   private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
@@ -74,31 +86,23 @@ public class RobotContainer {
   */
 
   // align with reef command
-  private final AlignWithReef alignWithReef = new AlignWithReef(m_robotDrive, reefLime, "L");
+  private final AlignWithReef alignWithReef = new AlignWithReef(m_robotDrive, lime, "L");
 
   // joystick initialization
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
   private final CommandJoystick m_flightStick = new CommandJoystick(1);
 
-  // container; contains subsystems, OI devices, and commands
   public RobotContainer() {
-
-    //m_elevator = new Elevator(0, 0);
 
     configureButtonBindings();
 
-    // set default commands
     m_elevatorPivot.homeSetpoints();
     m_elevatorPivot.setDefaultCommand(m_elevatorPivot.controlPivot());
     m_elevator.setDefaultCommand(m_elevator.getElevatorHeightCommand());
-    reefLime.setDefaultCommand(reefLime.displayValues());
+    lime.setDefaultCommand(lime.displayValues());
 
     m_bowWheels.setDefaultCommand(m_bowWheels.stop());
-
-    // if red, negative
-
-    // if blue, positive
 
     m_robotDrive.setDefaultCommand(
         new RunCommand(() -> {
@@ -120,28 +124,18 @@ public class RobotContainer {
         }
     }, m_robotDrive));
 }
-    
-  
-
 
   private void configureButtonBindings() {
-    
-    // driving config
     new JoystickButton(m_driverController, Button.kR1.value)
       .whileTrue(new RunCommand(
           () -> m_robotDrive.setX(),
           m_robotDrive));
 
     m_flightStick.button(7).onTrue(kScoringCommandL1.andThen(m_elevator.stop()));
-
     m_flightStick.button(8).onTrue(kScoringCommandL2.andThen(m_elevator.stop()));
-
     m_flightStick.button(9).onTrue(kScoringCommandL3.andThen(m_elevator.stop()));
-
     m_flightStick.button(10).onTrue(kScoringCommandL4.andThen(m_elevator.stop()));
-
     m_flightStick.button(11).onTrue(kScoringCommandL5.andThen(m_elevator.stop()));
-
 
     /*
     m_flightStick.button(7).onTrue(kElevatorCommandL1.andThen(m_elevatorPivot.findSetpoint(0)));
@@ -167,18 +161,17 @@ public class RobotContainer {
     new JoystickButton(m_driverController, 5).whileTrue(m_climberPivot.slowPivotIn());
 
     // limelight? prob need to remove this
-    new JoystickButton(m_driverController, 3).whileTrue(alignWithReef);
+
+    new JoystickButton(m_driverController, 3).onTrue(alignWithReef);
+
 
     // manual climber pivot control
     new JoystickButton(m_driverController, 1).whileTrue(m_climberPivot.pivotIn());
     new JoystickButton(m_driverController, 2).whileTrue(m_climberPivot.pivotOut());
   }
 
-
   // use to pass autonomous command to the main class
-  public Command getAutonomousCommand() {
-
-    // Leave Community Trajectory
+  public Command leaveAndScoreCommand() {
     TrajectoryConfig config = new TrajectoryConfig(
         AutoConstants.kMaxSpeedMetersPerSecond,
         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
@@ -226,7 +219,7 @@ public class RobotContainer {
     m_robotDrive.resetOdometry(traj.getInitialPose());
 
     ScoringCommand autoScoringCommand = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
-    ScoreInAuto bowWheelsCommand = new ScoreInAuto(m_bowWheels);
+    WheelsInAuto bowWheelsCommand = new WheelsInAuto(m_bowWheels);
     
     return swerveControllerCommand.andThen(swerveControllerCommand1.andThen((
     autoScoringCommand.withTimeout(3.0).andThen(
@@ -238,14 +231,11 @@ public class RobotContainer {
   }
 
   public Command leaveCommunityCommand() {
-
-    // Leave Community Trajectory
     TrajectoryConfig config = new TrajectoryConfig(
         AutoConstants.kMaxSpeedMetersPerSecond,
         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
         .setKinematics(DriveConstants.kDriveKinematics);
 
-    // all units in meters, drive forward ONLY
     Trajectory traj = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
@@ -271,4 +261,77 @@ public class RobotContainer {
 
     return swerveControllerCommand.andThen((() -> m_robotDrive.drive(0, 0, 0, false)));
   }
+
+  private Command bargeToReef() {
+    try {
+        PathPlannerPath path = PathPlannerPath.fromPathFile("bargeToReef");
+        return AutoBuilder.followPath(path);
+    } catch (Exception e) {
+        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
+        return Commands.none(); // return a default command
+    }
+  }
+
+  private Command reefToHP() {
+    try {
+        PathPlannerPath path = PathPlannerPath.fromPathFile("reefToHP");
+        return AutoBuilder.followPath(path);
+    } catch (Exception e) {
+        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
+        return Commands.none(); // return a default command
+    }
+  }
+
+  private Command HPtoReef() {
+    try {
+        PathPlannerPath path = PathPlannerPath.fromPathFile("HPtoReef");
+        return AutoBuilder.followPath(path);
+    } catch (Exception e) {
+        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
+        return Commands.none(); // return a default command
+    }
+  }
+
+  public Command findAndScore() {
+    ScoringCommand runElevatorL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
+    WheelsInAuto scoreCoral = new WheelsInAuto(m_bowWheels);
+    WheelsInAuto recieveCoral = new WheelsInAuto(m_bowWheels);
+ 
+    FindHuman searchForHP = new FindHuman(m_robotDrive, lime);
+    AlignWithReef searchForReef = new AlignWithReef(m_robotDrive, lime, "L");
+
+    // run in parrallel until first command interrupts 
+    ParallelRaceGroup findReef = new ParallelRaceGroup(
+        bargeToReef(), 
+        searchForReef
+    );
+
+    ParallelRaceGroup findHP = new ParallelRaceGroup(
+        reefToHP(),
+        searchForHP
+    );
+
+    ParallelRaceGroup findFinalPose = new ParallelRaceGroup(
+        HPtoReef(),
+        searchForHP
+    );
+    // find, the scoring command, then bow wheels for 2 seconds?, then HP station, then 
+    return findReef.andThen(runElevatorL5.andThen(scoreCoral).andThen(findHP.andThen(recieveCoral).andThen(findFinalPose)));
+    }
+
+    public Command testPath() {
+
+        WheelsInAuto runWheels = new WheelsInAuto(m_bowWheels);
+
+        return Commands.defer(() -> {
+            try {
+                PathPlannerPath path = PathPlannerPath.fromPathFile("run forward");
+                return AutoBuilder.followPath(path);
+            } catch (Exception e) {
+                DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
+                return Commands.none(); // return a default command
+            }
+        }, Set.of(m_robotDrive)).andThen(kScoringCommandL1).andThen(runWheels); // Empty requirement set
+    }
 }
+    

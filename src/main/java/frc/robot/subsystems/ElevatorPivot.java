@@ -5,6 +5,7 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
@@ -80,7 +81,8 @@ public class ElevatorPivot extends SubsystemBase {
         return ((2*3.14159)*encoder.getPosition()) - 2.77;
     }
 
-    // **Manually apply PID control**
+    // try putting this code into the periodic method 
+
     public Command controlPivot() {
         return run(() -> {
             double pidOutput = feedback.calculate(getPivotAngle(), pivotSetpoint);
@@ -100,15 +102,11 @@ public class ElevatorPivot extends SubsystemBase {
     }
 
     public Command pivotOutCommand() {
-        return run(() -> {
-            motor1.set(0.2);
-        });
+        return new RunCommand(() -> motor1.set(0.2), this);
     }
 
     public Command pivotInCommand() {
-        return run(() -> {
-            motor1.set(-0.2);
-        });
+        return new RunCommand(() -> motor1.set(-0.2), this);
     }
     
     public Command findSetpoint(double target) {
@@ -116,4 +114,9 @@ public class ElevatorPivot extends SubsystemBase {
             pivotSetpoint = target;
         });
     }   
+
+    @Override 
+    public void periodic() {
+
+    }
 }

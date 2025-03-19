@@ -20,22 +20,14 @@ import edu.wpi.first.wpilibj.I2C;
 
 public class ClimberPivot extends SubsystemBase {
     
-    // Motors
     private final SparkFlex motor1;
     private final SparkFlex motor2;
 
-
-    // REMEMBER TO PROPERLY MODIFY IF STATEMENTS
     private double min = 0.19;
 
     private final SparkAbsoluteEncoder encoder;
 
-    
-    // Constants (modify these based on your elevator design)
     private static final double kPivotSpeed = 1;
-    private static final double kP = 0.0;
-    private static final double kI = 0.0;
-    private static final double kD = 0.0;
 
     public ClimberPivot(int motor1Port, int motor2Port) {
         motor1 = new SparkFlex(motor1Port, MotorType.kBrushless);
@@ -46,7 +38,6 @@ public class ClimberPivot extends SubsystemBase {
         setDefaultCommand(new RunCommand(() -> {
             motor1.set(0.0);
             motor2.set(0.0);
-
             SmartDashboard.putNumber("pivot encoder", encoder.getPosition());
         }, this));
     }
@@ -59,27 +50,10 @@ public class ClimberPivot extends SubsystemBase {
         return new RunCommand(() -> {
             motor1.set(kPivotSpeed);
             motor2.set(-kPivotSpeed);
-
-            
             if (getClimberAngle() <= min) {
                 motor1.set(0);
                 motor2.set(0);
             }
-
-        });
-    }
-
-    public Command slowPivotIn() {
-        return new RunCommand(() -> {
-            motor1.set(0.35);
-            motor2.set(-0.35);
-
-            
-            if (getClimberAngle() <= min) {
-                motor1.set(0);
-                motor2.set(0);
-            }
-
         });
     }
 
@@ -87,19 +61,18 @@ public class ClimberPivot extends SubsystemBase {
         return new RunCommand(() -> {
             motor1.set(-kPivotSpeed);
             motor2.set(kPivotSpeed);
-
-            /*
-            if (getClimberAngle() <= max) {
-                motor1.set(0);
-                motor2.set(0);
-            } */
-
         });
     }
 
-    public Command displayEncoderInfo() {
-        return run(() -> {
-            SmartDashboard.putNumber("Climber Pivot Encoder: ", getClimberAngle());
+    public Command slowPivotIn() {
+        return new RunCommand(() -> {
+            motor1.set(-0.05);
+            motor2.set(0.05);
         });
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Climber Pivot Encoder: ", getClimberAngle());
     }
 }

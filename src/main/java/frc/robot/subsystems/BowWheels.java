@@ -21,6 +21,8 @@ public class BowWheels extends SubsystemBase {
     public BowWheels(int motor1Port, int motor2Port) {
         motor1 = new SparkMax(motor1Port, MotorType.kBrushless);
         motor2 = new SparkMax(motor2Port, MotorType.kBrushless);
+
+        // set default command
     }
 
     // Command to intake (start moving the wheels in)
@@ -80,5 +82,10 @@ public class BowWheels extends SubsystemBase {
     // Optional: method to check if the IR sensor is triggered
     public boolean isIRSensorTriggered() {
         return ir_sensor.get();
+    }
+
+    @Override
+    public void periodic() {
+        
     }
 }
