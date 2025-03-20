@@ -41,10 +41,10 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.BowWheels;
-import frc.robot.commands.AlignWithReef;
+import frc.robot.commands.LeftReefAlign;
+import frc.robot.commands.RightReefAlign;
 import frc.robot.commands.ElevatorCommand;
-import frc.robot.commands.FindHuman;
-import frc.robot.commands.WheelsInAuto;
+import frc.robot.commands.HumanAlign;
 import frc.robot.commands.ScoringCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -54,20 +54,19 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 // strucutre of robot (including subsystems, commands, and button mappings) should be declared here
 
 public class RobotContainer {
+
   // robot subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
   private final Elevator m_elevator = new Elevator(14, 15); // CAN ID's
   private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final ClimberPivot m_climberPivot = new ClimberPivot(13, 12);
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
-
-  /*
-  public final Vision reefLime = new Vision(m_robotDrive, "reefLime");
-  public final Vision humanLime = new Vision(m_robotDrive, "humanLime");
-  /*
-   * 
-   */
   public final Vision lime = new Vision(m_robotDrive);
+
+  // joystick initialization
+  private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
+  private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
+  private final CommandJoystick m_flightStick = new CommandJoystick(1);
 
   // change elevator height here!
   private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
@@ -76,8 +75,7 @@ public class RobotContainer {
   private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
   private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.29);
 
-  // backup commands if ScoringCommand becomes unreliable
-  /*
+  /* backup commands if scoring commands become unreliable
   private final ElevatorCommand kElevatorCommandL1 = new ElevatorCommand(m_elevator, 40);
   private final ElevatorCommand kElevatorCommandL2 = new ElevatorCommand(m_elevator, 110);
   private final ElevatorCommand kElevatorCommandL3 = new ElevatorCommand(m_elevator, 40);
@@ -86,22 +84,17 @@ public class RobotContainer {
   */
 
   // align with reef command
-  private final AlignWithReef alignWithReef = new AlignWithReef(m_robotDrive, lime, "L");
-
-  // joystick initialization
-  private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-  private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
-  private final CommandJoystick m_flightStick = new CommandJoystick(1);
+  private final RightReefAlign rightSideAlign = new RightReefAlign(m_robotDrive, lime);
+  private final LeftReefAlign leftSideAlign = new LeftReefAlign(m_robotDrive, lime);
 
   public RobotContainer() {
 
     configureButtonBindings();
-
     m_elevatorPivot.homeSetpoints();
+
     m_elevatorPivot.setDefaultCommand(m_elevatorPivot.controlPivot());
     m_elevator.setDefaultCommand(m_elevator.getElevatorHeightCommand());
     lime.setDefaultCommand(lime.displayValues());
-
     m_bowWheels.setDefaultCommand(m_bowWheels.stop());
 
     m_robotDrive.setDefaultCommand(
@@ -126,24 +119,20 @@ public class RobotContainer {
 }
 
   private void configureButtonBindings() {
+
+    /* lock swerve by "x" config
     new JoystickButton(m_driverController, Button.kR1.value)
       .whileTrue(new RunCommand(
           () -> m_robotDrive.setX(),
           m_robotDrive));
+    */ 
 
+    // scoring commands (elevator & pivot control)
     m_flightStick.button(7).onTrue(kScoringCommandL1.andThen(m_elevator.stop()));
     m_flightStick.button(8).onTrue(kScoringCommandL2.andThen(m_elevator.stop()));
     m_flightStick.button(9).onTrue(kScoringCommandL3.andThen(m_elevator.stop()));
     m_flightStick.button(10).onTrue(kScoringCommandL4.andThen(m_elevator.stop()));
     m_flightStick.button(11).onTrue(kScoringCommandL5.andThen(m_elevator.stop()));
-
-    /*
-    m_flightStick.button(7).onTrue(kElevatorCommandL1.andThen(m_elevatorPivot.findSetpoint(0)));
-    m_flightStick.button(8).onTrue(kElevatorCommandL2.andThen(m_elevatorPivot.findSetpoint(0)));
-    m_flightStick.button(9).onTrue(kElevatorCommandL3.andThen(m_elevatorPivot.findSetpoint(0)));
-    m_flightStick.button(10).onTrue(kElevatorCommandL4.andThen(m_elevatorPivot.findSetpoint(0)));
-    m_flightStick.button(11).onTrue(kElevatorCommandL5.andThen(m_elevatorPivot.findSetpoint(0)));
-    */
 
     // manual pivot control via setpoints
     m_flightStick.button(1).whileTrue(m_elevatorPivot.adjustSetpointUp());
@@ -157,20 +146,61 @@ public class RobotContainer {
     m_flightStick.button(5).whileTrue(m_bowWheels.intake());
     m_flightStick.button(6).whileTrue(m_bowWheels.outtake());
 
-    // controlled pivot in
-    new JoystickButton(m_driverController, 5).whileTrue(m_climberPivot.slowPivotIn());
-
-    // limelight? prob need to remove this
-
-    new JoystickButton(m_driverController, 3).onTrue(alignWithReef);
-
-
     // manual climber pivot control
     new JoystickButton(m_driverController, 1).whileTrue(m_climberPivot.pivotIn());
     new JoystickButton(m_driverController, 2).whileTrue(m_climberPivot.pivotOut());
+    new JoystickButton(m_driverController, 3).whileTrue(m_climberPivot.slowPivotIn());
+
+    new JoystickButton(m_driverController, 4).whileTrue(lime.alignToTarget());
+
+    // align commands
+    new JoystickButton(m_driverController, 5).onTrue(rightSideAlign);
+    new JoystickButton(m_driverController, 6).onTrue(leftSideAlign);
   }
 
-  // use to pass autonomous command to the main class
+
+  // do nothing in auto
+  public Command doNothing() {
+    return m_robotDrive.doNothing();
+  }
+
+
+  // leave barge area in auto
+  public Command leaveCommunityCommand() {
+    TrajectoryConfig config = new TrajectoryConfig(
+        AutoConstants.kMaxSpeedMetersPerSecond,
+        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+        .setKinematics(DriveConstants.kDriveKinematics);
+
+    Trajectory traj = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(0, 0, new Rotation2d(0)),
+        List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
+        new Pose2d(-1.5, 0, new Rotation2d(0)),
+        config);
+
+    var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        traj,
+        m_robotDrive::getPose,
+        DriveConstants.kDriveKinematics,
+
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
+
+    m_robotDrive.resetOdometry(traj.getInitialPose());
+
+    return swerveControllerCommand.andThen((() -> m_robotDrive.drive(0, 0, 0, false)));
+  }
+
+
+
+  // leave barge and score L4 on reef
   public Command leaveAndScoreCommand() {
     TrajectoryConfig config = new TrajectoryConfig(
         AutoConstants.kMaxSpeedMetersPerSecond,
@@ -182,8 +212,6 @@ public class RobotContainer {
         List.of(new Translation2d(-0.02, 0.02), new Translation2d(-0.025, 0.025)),
         new Pose2d(-0.03, 0.03, new Rotation2d(-0.78)),
         config);
-
-    // all units in meters, drive forward ONLY
     Trajectory traj1 = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0.03, 0.03, new Rotation2d(-0.78)),
         List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
@@ -219,49 +247,17 @@ public class RobotContainer {
     m_robotDrive.resetOdometry(traj.getInitialPose());
 
     ScoringCommand autoScoringCommand = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
-    WheelsInAuto bowWheelsCommand = new WheelsInAuto(m_bowWheels);
     
     return swerveControllerCommand.andThen(swerveControllerCommand1.andThen((
     autoScoringCommand.withTimeout(3.0).andThen(
-        m_elevator.stop().withTimeout(.1).andThen(bowWheelsCommand.withTimeout(3).andThen(() -> m_robotDrive.drive(0, 0, 0, false)))))));
+        m_elevator.stop().withTimeout(.1).andThen(() -> m_robotDrive.drive(0, 0, 0, false))))));
   }
 
-  public Command doNothing() {
-    return m_robotDrive.doNothing();
-  }
 
-  public Command leaveCommunityCommand() {
-    TrajectoryConfig config = new TrajectoryConfig(
-        AutoConstants.kMaxSpeedMetersPerSecond,
-        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-        .setKinematics(DriveConstants.kDriveKinematics);
 
-    Trajectory traj = TrajectoryGenerator.generateTrajectory(
-        new Pose2d(0, 0, new Rotation2d(0)),
-        List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
-        new Pose2d(-1.5, 0, new Rotation2d(0)),
-        config);
 
-    var thetaController = new ProfiledPIDController(
-        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        traj,
-        m_robotDrive::getPose,
-        DriveConstants.kDriveKinematics,
-
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        m_robotDrive::setModuleStates,
-        m_robotDrive);
-
-    m_robotDrive.resetOdometry(traj.getInitialPose());
-
-    return swerveControllerCommand.andThen((() -> m_robotDrive.drive(0, 0, 0, false)));
-  }
-
+  // travel path from barge to reef
   private Command bargeToReef() {
     try {
         PathPlannerPath path = PathPlannerPath.fromPathFile("bargeToReef");
@@ -272,6 +268,7 @@ public class RobotContainer {
     }
   }
 
+  // travel path from reef to human player station
   private Command reefToHP() {
     try {
         PathPlannerPath path = PathPlannerPath.fromPathFile("reefToHP");
@@ -282,6 +279,8 @@ public class RobotContainer {
     }
   }
 
+
+  // travel path from human player station to reef
   private Command HPtoReef() {
     try {
         PathPlannerPath path = PathPlannerPath.fromPathFile("HPtoReef");
@@ -292,13 +291,12 @@ public class RobotContainer {
     }
   }
 
+  // utilize limelight commands in autonomous period
   public Command findAndScore() {
     ScoringCommand runElevatorL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
-    WheelsInAuto scoreCoral = new WheelsInAuto(m_bowWheels);
-    WheelsInAuto recieveCoral = new WheelsInAuto(m_bowWheels);
  
-    FindHuman searchForHP = new FindHuman(m_robotDrive, lime);
-    AlignWithReef searchForReef = new AlignWithReef(m_robotDrive, lime, "L");
+    HumanAlign searchForHP = new HumanAlign(m_robotDrive, lime);
+    LeftReefAlign searchForReef = new LeftReefAlign(m_robotDrive, lime);
 
     // run in parrallel until first command interrupts 
     ParallelRaceGroup findReef = new ParallelRaceGroup(
@@ -316,12 +314,11 @@ public class RobotContainer {
         searchForHP
     );
     // find, the scoring command, then bow wheels for 2 seconds?, then HP station, then 
-    return findReef.andThen(runElevatorL5.andThen(scoreCoral).andThen(findHP.andThen(recieveCoral).andThen(findFinalPose)));
+    return findReef.andThen(runElevatorL5.andThen(findHP.andThen(findFinalPose)));
     }
 
+    // send robot forward 
     public Command testPath() {
-
-        WheelsInAuto runWheels = new WheelsInAuto(m_bowWheels);
 
         return Commands.defer(() -> {
             try {
@@ -331,7 +328,7 @@ public class RobotContainer {
                 DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
                 return Commands.none(); // return a default command
             }
-        }, Set.of(m_robotDrive)).andThen(kScoringCommandL1).andThen(runWheels); // Empty requirement set
+        }, Set.of(m_robotDrive)).andThen(kScoringCommandL1).andThen(() -> m_robotDrive.drive(0, 0, 0, false)); // Empty requirement set
     }
 }
     

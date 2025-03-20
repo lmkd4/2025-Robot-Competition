@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 
-public class FindHuman extends Command {
+public class HumanAlign extends Command {
 
     private final DriveSubsystem m_drive;
     public Vision m_lime;
@@ -28,7 +28,7 @@ public class FindHuman extends Command {
     private PIDController yTranslationController = new PIDController(kP, kI, kD);
 
 
-    public FindHuman(DriveSubsystem subsystem1, Vision subsystem2) {
+    public HumanAlign(DriveSubsystem subsystem1, Vision subsystem2) {
         m_drive = subsystem1;
         m_lime = subsystem2;
     }

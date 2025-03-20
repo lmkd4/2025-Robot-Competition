@@ -1,7 +1,13 @@
 package frc.robot.subsystems;
 
+import org.dyn4j.geometry.Vector3;
+
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.numbers.N4;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -11,7 +17,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Vision extends SubsystemBase {
 
-    private static final double kP = 0.1;
+    private static final double kP = 0.3;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
@@ -50,23 +56,36 @@ public class Vision extends SubsystemBase {
     
     public Command alignToTarget() {
         return run(() -> {
+
+        System.out.println("Test");
         Pose3d pose3d = getBotPose3d();
+
+        Translation3d target_point_tag_frame = new Translation3d(0, 0, -1.0);
+        
+        Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation()) ;
 
         double x = pose3d.getX();
         double y = pose3d.getZ();
 
-        double xTranslation = xTranslationController.calculate(x, 0.05);
-        double yTranslation = yTranslationController.calculate(y, -0.3);
+        double xTranslation = xTranslationController.calculate(-target_point_robot_frame.getX(), 0.00);
+        double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
+        double rot_cmd = -pose3d.getRotation().getY() * 1;
 
         if (hasValidTarget()) {
-            m_drive.drive(xTranslation, yTranslation, 0.0, false);
+            m_drive.drive(xTranslation, yTranslation, rot_cmd, false);
         }
      });
     }
 
+
     public Command displayValues() {
         return run(() -> {
             Pose3d pose = getBotPose3d();
+
+            Translation3d target_point_tag_frame = new Translation3d(0.0, 0.0, -1.0);
+        
+            Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose.getRotation()).plus(pose.getTranslation()) ;
+            
             double t[] = { pose.getX(), pose.getY(), pose.getZ() };
     
             double rX[] = { pose.getRotation().toMatrix().get(0, 0),
@@ -105,6 +124,11 @@ public class Vision extends SubsystemBase {
             SmartDashboard.putNumber("tx", getTx());
             SmartDashboard.putNumber("ty", getTy());
             SmartDashboard.putNumber("ta", getArea());
+
+            SmartDashboard.putNumber("tpx", target_point_robot_frame.getX());
+            SmartDashboard.putNumber("tpy", target_point_robot_frame.getY());
+            SmartDashboard.putNumber("tpz", target_point_robot_frame.getZ());
+            SmartDashboard.putNumber("tpyaw", pose.getRotation().getY());
         });
     }
 

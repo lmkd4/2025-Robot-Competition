@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 
-public class AlignWithReef extends Command {
+public class RightReefAlign extends Command {
 
     private final DriveSubsystem m_drive;
     public Vision m_lime;
@@ -22,17 +22,13 @@ public class AlignWithReef extends Command {
     public double x;
     public double y;
 
-    private String leftOrRight;
-
     private PIDController xTranslationController = new PIDController(kP, kI, kD);
     private PIDController yTranslationController = new PIDController(kP, kI, kD);
 
 
-    public AlignWithReef(DriveSubsystem subsystem1, Vision subsystem2, String orientation) {
+    public RightReefAlign(DriveSubsystem subsystem1, Vision subsystem2) {
         m_drive = subsystem1;
         m_lime = subsystem2;
-
-        this.leftOrRight = orientation;
     }
 
     @Override
@@ -89,14 +85,10 @@ public class AlignWithReef extends Command {
 
         x = pose3d.getX();
         y = pose3d.getZ();
-        // right side
         
         double xTranslation = xTranslationController.calculate(x, 0.045);
         double yTranslation = yTranslationController.calculate(y, 0.48);
-        // left side
         m_drive.drive(xTranslation, yTranslation, 0.0, false);
-
-        // when limelight finds target, issue a rapid drive forward command to accomoate for limlited FOV
     }
   
     @Override

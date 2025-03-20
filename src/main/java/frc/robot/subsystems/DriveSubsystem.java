@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import java.util.List;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -33,6 +34,7 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SerialPort;
 import frc.robot.Robot;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ModuleConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -40,12 +42,15 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import com.pathplanner.lib.pathfinding.Pathfinding;
+import com.revrobotics.spark.config.MAXMotionConfig;
+import com.revrobotics.spark.config.SparkFlexConfig;
+
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.util.WPIUtilJNI;
 
 public class DriveSubsystem extends SubsystemBase {
-  
+ 
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
@@ -108,7 +113,7 @@ public class DriveSubsystem extends SubsystemBase {
         config = RobotConfig.fromGUISettings(); // Initialize it inside the try block
     } catch (Exception e) {
         e.printStackTrace();
-        config = new RobotConfig(50, 3.5, null, null); // Provide a default value or handle it properly
+        config = new RobotConfig(0, 0, null, null); // Provide a default value or handle it properly
     }
     
     // Configure AutoBuilder last
@@ -120,7 +125,7 @@ public class DriveSubsystem extends SubsystemBase {
       new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
           new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
           new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
-          ), config, // The robot configuration
+          ), config,
           () -> {
               // Boolean supplier that controls when the path will be mirrored for the red alliance
               // This will flip the path being followed to the red side of the field.
