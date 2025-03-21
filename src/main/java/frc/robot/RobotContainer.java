@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.jar.Attributes.Name;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import frc.robot.Constants.AutoConstants;
@@ -61,12 +62,15 @@ public class RobotContainer {
   private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final ClimberPivot m_climberPivot = new ClimberPivot(13, 12);
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
+
   public final Vision lime = new Vision(m_robotDrive);
 
   // joystick initialization
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
   private final CommandJoystick m_flightStick = new CommandJoystick(1);
+
+  private final LeftReefAlign leftReefAlign = new LeftReefAlign(m_robotDrive, lime);
 
   // change elevator height here!
   private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
@@ -151,21 +155,14 @@ public class RobotContainer {
     new JoystickButton(m_driverController, 2).whileTrue(m_climberPivot.pivotOut());
     new JoystickButton(m_driverController, 3).whileTrue(m_climberPivot.slowPivotIn());
 
-    new JoystickButton(m_driverController, 4).whileTrue(lime.alignToTarget());
-
-    // align commands
-    new JoystickButton(m_driverController, 5).onTrue(rightSideAlign);
-    new JoystickButton(m_driverController, 6).onTrue(leftSideAlign);
+    new JoystickButton(m_driverController, 5).whileTrue(lime.alignToTargetRight());
+    new JoystickButton(m_driverController, 6).whileTrue(lime.alignToTargetLeft());
   }
 
-
-  // do nothing in auto
   public Command doNothing() {
     return m_robotDrive.doNothing();
   }
 
-
-  // leave barge area in auto
   public Command leaveCommunityCommand() {
     TrajectoryConfig config = new TrajectoryConfig(
         AutoConstants.kMaxSpeedMetersPerSecond,
@@ -198,9 +195,6 @@ public class RobotContainer {
     return swerveControllerCommand.andThen((() -> m_robotDrive.drive(0, 0, 0, false)));
   }
 
-
-
-  // leave barge and score L4 on reef
   public Command leaveAndScoreCommand() {
     TrajectoryConfig config = new TrajectoryConfig(
         AutoConstants.kMaxSpeedMetersPerSecond,
@@ -210,12 +204,7 @@ public class RobotContainer {
     Trajectory traj = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(new Translation2d(-0.02, 0.02), new Translation2d(-0.025, 0.025)),
-        new Pose2d(-0.03, 0.03, new Rotation2d(-0.78)),
-        config);
-    Trajectory traj1 = TrajectoryGenerator.generateTrajectory(
-        new Pose2d(0.03, 0.03, new Rotation2d(-0.78)),
-        List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
-        new Pose2d(-.5, 0, new Rotation2d(-0.78)),
+        new Pose2d(-0.5, 0.02, new Rotation2d(-1.57)),
         config);
 
     var thetaController = new ProfiledPIDController(
@@ -233,102 +222,102 @@ public class RobotContainer {
         m_robotDrive::setModuleStates,
         m_robotDrive);
 
-    SwerveControllerCommand swerveControllerCommand1 = new SwerveControllerCommand(
-        traj1,
-        m_robotDrive::getPose,
-        DriveConstants.kDriveKinematics,
-    
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        m_robotDrive::setModuleStates,
-        m_robotDrive);
-
     m_robotDrive.resetOdometry(traj.getInitialPose());
 
-    ScoringCommand autoScoringCommand = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
-    
-    return swerveControllerCommand.andThen(swerveControllerCommand1.andThen((
-    autoScoringCommand.withTimeout(3.0).andThen(
-        m_elevator.stop().withTimeout(.1).andThen(() -> m_robotDrive.drive(0, 0, 0, false))))));
+    return swerveControllerCommand.andThen(leftReefAlign.andThen(() -> m_robotDrive.drive(0, 0, 0, false)));
   }
 
 
 
-
-
-  // travel path from barge to reef
   private Command bargeToReef() {
     try {
         PathPlannerPath path = PathPlannerPath.fromPathFile("bargeToReef");
         return AutoBuilder.followPath(path);
     } catch (Exception e) {
         DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-        return Commands.none(); // return a default command
+        return Commands.none(); 
     }
   }
-
-  // travel path from reef to human player station
   private Command reefToHP() {
     try {
         PathPlannerPath path = PathPlannerPath.fromPathFile("reefToHP");
         return AutoBuilder.followPath(path);
     } catch (Exception e) {
         DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-        return Commands.none(); // return a default command
+        return Commands.none();
     }
   }
-
-
-  // travel path from human player station to reef
   private Command HPtoReef() {
     try {
         PathPlannerPath path = PathPlannerPath.fromPathFile("HPtoReef");
         return AutoBuilder.followPath(path);
     } catch (Exception e) {
         DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-        return Commands.none(); // return a default command
+        return Commands.none(); 
     }
   }
 
-  // utilize limelight commands in autonomous period
-  public Command findAndScore() {
-    ScoringCommand runElevatorL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
- 
-    HumanAlign searchForHP = new HumanAlign(m_robotDrive, lime);
-    LeftReefAlign searchForReef = new LeftReefAlign(m_robotDrive, lime);
-
-    // run in parrallel until first command interrupts 
-    ParallelRaceGroup findReef = new ParallelRaceGroup(
-        bargeToReef(), 
-        searchForReef
-    );
-
-    ParallelRaceGroup findHP = new ParallelRaceGroup(
-        reefToHP(),
-        searchForHP
-    );
-
-    ParallelRaceGroup findFinalPose = new ParallelRaceGroup(
-        HPtoReef(),
-        searchForHP
-    );
-    // find, the scoring command, then bow wheels for 2 seconds?, then HP station, then 
-    return findReef.andThen(runElevatorL5.andThen(findHP.andThen(findFinalPose)));
-    }
-
     // send robot forward 
-    public Command testPath() {
-
+  public Command testPath() {
         return Commands.defer(() -> {
             try {
-                PathPlannerPath path = PathPlannerPath.fromPathFile("run forward");
+                PathPlannerPath path = PathPlannerPath.fromPathFile("runForward");
                 return AutoBuilder.followPath(path);
             } catch (Exception e) {
                 DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
                 return Commands.none(); // return a default command
             }
-        }, Set.of(m_robotDrive)).andThen(kScoringCommandL1).andThen(() -> m_robotDrive.drive(0, 0, 0, false)); // Empty requirement set
+        }, Set.of(m_robotDrive)).andThen(() -> m_robotDrive.drive(0, 0, 0, false)); // Empty requirement set
     }
+
+
+    public Command leaveScoreFindScore() {
+        return Commands.sequence(
+            Commands.parallel(
+                Commands.defer(() -> {
+                    try {
+                        PathPlannerPath path = PathPlannerPath.fromPathFile("bargeToReef");
+                        return AutoBuilder.followPath(path);
+                    } catch (Exception e) {
+                        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
+                        return Commands.none();
+                    }
+                }, Set.of(m_robotDrive)),
+                kScoringCommandL4
+            )
+        ).andThen(
+            m_bowWheels.outtake().withTimeout(1)
+        ).andThen(
+            Commands.parallel(
+                Commands.defer(() -> {
+                    try {
+                        PathPlannerPath path = PathPlannerPath.fromPathFile("reefToHP");
+                        return AutoBuilder.followPath(path);
+                    } catch (Exception e) {
+                        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
+                        return Commands.none();
+                    }
+                }, Set.of(m_robotDrive)),
+                kScoringCommandL5
+            )
+        ).andThen(
+            m_bowWheels.intake().withTimeout(1)
+        ).andThen(
+            Commands.parallel(
+                Commands.defer(() -> {
+                    try {
+                        PathPlannerPath path = PathPlannerPath.fromPathFile("HPtoReef");
+                        return AutoBuilder.followPath(path);
+                    } catch (Exception e) {
+                        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
+                        return Commands.none();
+                    }
+                }, Set.of(m_robotDrive)),
+                kScoringCommandL4
+            )
+        ).andThen(
+            m_bowWheels.outtake().withTimeout(1)
+        );
+  } 
 }
     

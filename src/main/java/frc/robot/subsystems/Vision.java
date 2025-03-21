@@ -1,6 +1,11 @@
 package frc.robot.subsystems;
 
+import java.util.Set;
+
 import org.dyn4j.geometry.Vector3;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Vector;
@@ -10,14 +15,17 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N4;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 public class Vision extends SubsystemBase {
 
-    private static final double kP = 0.3;
+    private static final double kP = 0.75;
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
@@ -27,7 +35,6 @@ public class Vision extends SubsystemBase {
     private final NetworkTable limelightTable;
     private final DriveSubsystem m_drive;
 
-    private String limelightName = ""; // Set to actual Limelight name
     
     public Vision(DriveSubsystem drive) {
         this.limelightTable = NetworkTableInstance.getDefault().getTable("");
@@ -53,14 +60,21 @@ public class Vision extends SubsystemBase {
     public boolean hasValidTarget() {
         return LimelightHelpers.getTV("");
     }
+
+    public void lightsOn() {
+        LimelightHelpers.setLEDMode_ForceOn("");
+    }
     
-    public Command alignToTarget() {
+    public Command alignToTargetRight() {
         return run(() -> {
 
         System.out.println("Test");
         Pose3d pose3d = getBotPose3d();
 
-        Translation3d target_point_tag_frame = new Translation3d(0, 0, -1.0);
+        // (right stide) x = 0.3, z = -0.5
+
+        // (left side) x = 0.0, z = -0.5
+        Translation3d target_point_tag_frame = new Translation3d(0.35, 0, -0.5);
         
         Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation()) ;
 
@@ -69,12 +83,62 @@ public class Vision extends SubsystemBase {
 
         double xTranslation = xTranslationController.calculate(-target_point_robot_frame.getX(), 0.00);
         double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
-        double rot_cmd = -pose3d.getRotation().getY() * 1;
+        double rot_cmd = pose3d.getRotation().getY() * 0.80;
 
-        if (hasValidTarget()) {
-            m_drive.drive(xTranslation, yTranslation, rot_cmd, false);
-        }
-     });
+        m_drive.drive(xTranslation, yTranslation, 0, false);
+      });
+    }
+
+    public Command alignToTargetLeft() {
+        return run(() -> {
+
+        System.out.println("Test");
+        Pose3d pose3d = getBotPose3d();
+
+        // (right stide) x = 0.3, z = -0.5
+
+        // (left side) x = 0.0, z = -0.5
+        Translation3d target_point_tag_frame = new Translation3d(0.03, 0, -0.5);
+        
+        Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation()) ;
+
+        double x = pose3d.getX();
+        double y = pose3d.getZ();
+
+        double xTranslation = xTranslationController.calculate(-target_point_robot_frame.getX(), 0.00);
+        double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
+        double rot_cmd = pose3d.getRotation().getY() * 0.80;
+
+        m_drive.drive(xTranslation, yTranslation, 0, false);
+      });
+    }
+
+
+    public boolean aligned() {
+        return getBotPose3d().getX() < .005 && getBotPose3d().getZ() < .005;
+    }
+
+    public Command rotateToTarget() {
+        return run(() -> {
+
+            System.out.println("Test");
+            Pose3d pose3d = getBotPose3d();
+    
+            Translation3d target_point_tag_frame = new Translation3d(0, 0, -1.0);
+            
+            Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation()) ;
+    
+            double x = pose3d.getX();
+            double y = pose3d.getZ();
+    
+            //double xTranslation = xTranslationController.calculate(-target_point_robot_frame.getX(), 0.00);
+            //double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
+            double rot_cmd = pose3d.getRotation().getY() * 0.80;
+    
+            if (hasValidTarget()) {
+                m_drive.drive(0, 0, rot_cmd, false);
+            }
+          });
     }
 
 

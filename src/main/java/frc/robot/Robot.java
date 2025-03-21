@@ -24,7 +24,7 @@ public class Robot extends TimedRobot {
   private static final String kDefaultAuto = "default";
   private static final String kAuto1 = "leave community";
   private static final String kAuto2 = "do nothing";
-  private static final String kAuto3 = "score";
+  private static final String kAuto3 = "leave, score, find, score";
   
   // autonomous stuff
   private String m_autoSelected;
@@ -36,9 +36,11 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();
 
     SmartDashboard.putData("Auto Choices", m_chooser);
+
     m_chooser.setDefaultOption("do nothing", kDefaultAuto);
     m_chooser.addOption("leave", kAuto1);
     m_chooser.addOption("test path", kAuto2);
+    m_chooser.addOption("leave, score, find, score", kAuto3);
   }
 
   @Override

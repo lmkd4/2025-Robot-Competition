@@ -2,13 +2,9 @@ package frc.robot.commands;
 
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.Vision;
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.DriveSubsystem;
 
 public class HumanAlign extends Command {
 
@@ -21,8 +17,6 @@ public class HumanAlign extends Command {
 
     public double x;
     public double y;
-
-    private String leftOrRight;
 
     private PIDController xTranslationController = new PIDController(kP, kI, kD);
     private PIDController yTranslationController = new PIDController(kP, kI, kD);

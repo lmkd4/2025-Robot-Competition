@@ -20,7 +20,7 @@ public class ElevatorPivot extends SubsystemBase {
 
     private static final double kP = 0.25;  
     private static final double kI = 0; 
-    private static final double kD = 0;  
+    private static final double kD = 0;
 
     public static double pivotSetpoint = 0;
 
