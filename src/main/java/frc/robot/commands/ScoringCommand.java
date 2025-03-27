@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
@@ -22,29 +23,39 @@ public class ScoringCommand extends Command {
 
   @Override
   public void initialize() {
-    // Reset the PID controllers to remove any previous state
-    // Explicitly re-set the setpoints
     m_elevator.setElevatorSetpoint(targetDistance);
     m_elevatorPivot.setPivotSetpoint(pivotSetpoint);
   }
 
   @Override
   public void execute() {    
-    m_elevator.controlElevator();  // Updates elevator control based on feedback
-    m_elevatorPivot.controlPivot(); // Adjusts pivot position dynamically
+
+    SmartDashboard.putNumber("Elevator height: ", m_elevator.getElevatorHeight());
+
+    double elevatorError = targetDistance - m_elevator.getElevatorHeight();
+    double pivotError = Math.abs(pivotSetpoint - m_elevatorPivot.getPivotAngle());
+    System.out.println("Elevator Error: " + elevatorError + ", Pivot Error: " + pivotError);
+
+    System.out.println("");
+    m_elevator.controlElevator(); 
+    m_elevatorPivot.controlPivot();
+
   }
 
   @Override
   public void end(boolean interrupted) {
+    System.out.println("Scoring Command has finished!");
     m_elevator.stop();
     m_elevatorPivot.stop();
   }
 
   @Override
   public boolean isFinished() {
-      double elevatorError = Math.abs(targetDistance - m_elevator.getElevatorHeight());
-      double pivotError = Math.abs(Math.abs(m_elevatorPivot.getPivotAngle()) - pivotSetpoint);
-      // Only finish if we're actually at the correct position
-      return (elevatorError <= 10 && pivotError <= 0.005);
+
+    double elevatorError = targetDistance - m_elevator.getElevatorHeight();
+    double pivotError = Math.abs(pivotSetpoint - m_elevatorPivot.getPivotAngle());
+
+
+    return (elevatorError <= 10 && pivotError <= 0.005);
   }
 }

@@ -40,10 +40,11 @@ public class Elevator extends SubsystemBase {
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
+
     private static double elevatorSetpoint = 0;
     private final double kElevatorSpeed = 0.2;
 
-    private LaserCan lc;
+    public LaserCan lc;
 
     public Elevator(int motor1Port, int motor2Port) {
         motor1 = new SparkMax(motor1Port, MotorType.kBrushless);
@@ -129,19 +130,23 @@ public class Elevator extends SubsystemBase {
     public boolean isStable() {
         return Math.abs(elevatorController.getVelocityError()) < 1.0;
     }
+
+    public boolean withinThreshold(double target) {
+        return Math.abs(target - getElevatorHeight()) < 10;
+    }
     
     public Command moveUp() {
-        return new InstantCommand(() -> {
+        return run(() -> {
             motor1.set(kElevatorSpeed);
             motor2.set(-kElevatorSpeed );
-        }, this);
+        });
     }
 
     public Command moveDown() {
-        return new InstantCommand(() -> {
+        return run(() -> {
             motor1.set(-kElevatorSpeed);
             motor2.set(kElevatorSpeed);
-        }, this);
+        });
     }
 
     public boolean condition() {

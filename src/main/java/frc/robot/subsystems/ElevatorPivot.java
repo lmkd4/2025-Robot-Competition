@@ -46,7 +46,7 @@ public class ElevatorPivot extends SubsystemBase {
     }
 
     public boolean setpointWithinThreshold(double setpoint) {
-        return (getPivotAngle() - setpoint) <= 0.005;
+        return (getPivotAngle() - setpoint) <= 1;
     }
     
     // **Set home position based on current encoder value**
@@ -58,33 +58,52 @@ public class ElevatorPivot extends SubsystemBase {
     public Command adjustSetpointUp() {
         return runOnce(() -> {
             if (pivotSetpoint < 3.14) {
-                pivotSetpoint = getPivotAngle() + 0.5;
+                pivotSetpoint = getPivotAngle() + 0.25;
             }
             // add clamp
             pivotSetpoint = Math.min(pivotSetpoint, 3.14);
         });
     }
 
+
+    /*
+    public Command findSafety() {
+        return runOnce(() -> {
+            if (getPivotAngle() > 3.14) {
+                pivotSetpoint = getPivotAngle() - 0.25;
+            }
+
+            else if (getPivotAngle() < -1.57) {
+                pivotSetpoint = getPivotAngle() + 0.25;
+            }
+        });
+    }
+    */
+
     public Command adjustSetpointDown() {
         return runOnce(() -> {
             if (pivotSetpoint > -1.57){
-                pivotSetpoint = getPivotAngle() - 0.5;
+                pivotSetpoint = getPivotAngle() - 0.25;
             }
 
             pivotSetpoint = Math.max(pivotSetpoint, -1.57);
         });
     }
 
-
-
     public double getPivotAngle() {
         return ((2*3.14159)*encoder.getPosition()) - 2.77;
     }
 
-    // try putting this code into the periodic method 
-
+    // try putting this code into a periodic method?
     public Command controlPivot() {
-        return run(() -> {
+        return run(() -> { 
+            
+            /* Clamp TBT 
+            if (getPivotAngle() < -1.57 && getPivotAngle() > 3.14) {
+                findSafety();
+            }
+            */
+
             double pidOutput = feedback.calculate(getPivotAngle(), pivotSetpoint);
             double ffOutput = feedforward.calculate(getPivotAngle() - (0.209), 0);
             double finalOutput = ffOutput + pidOutput;

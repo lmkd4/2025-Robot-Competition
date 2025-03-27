@@ -23,7 +23,7 @@ public class ClimberPivot extends SubsystemBase {
     private final SparkFlex motor1;
     private final SparkFlex motor2;
 
-    private double min = 0.19;
+    private double min = 0.6;
 
     private final SparkAbsoluteEncoder encoder;
 
@@ -46,31 +46,40 @@ public class ClimberPivot extends SubsystemBase {
         return encoder.getPosition();
     }
 
+    // this is actually out
     public Command pivotIn() {
         return new RunCommand(() -> {
             motor1.set(kPivotSpeed);
             motor2.set(-kPivotSpeed);
-            if (getClimberAngle() <= min) {
+        });
+    }
+
+    // this is actually in 
+    public Command pivotOut() {
+        return new RunCommand(() -> {
+            motor1.set(-kPivotSpeed);
+            motor2.set(kPivotSpeed);
+
+            if (getClimberAngle() >= min) {
                 motor1.set(0);
                 motor2.set(0);
             }
         });
     }
 
-    public Command pivotOut() {
-        return new RunCommand(() -> {
-            motor1.set(-kPivotSpeed);
-            motor2.set(kPivotSpeed);
-        });
-    }
-
     public Command slowPivotIn() {
         return new RunCommand(() -> {
-            motor1.set(-0.05);
-            motor2.set(0.05);
+            motor1.set(-0.2);
+            motor2.set(0.2);
         });
     }
 
+    public Command stop() {
+        return run(() -> {
+            motor1.set(0);
+            motor2.set(0);
+        });
+    }
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Climber Pivot Encoder: ", getClimberAngle());

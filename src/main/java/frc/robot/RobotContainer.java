@@ -43,7 +43,9 @@ import frc.robot.subsystems.ElevatorPivot;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.BowWheels;
 import frc.robot.commands.LeftReefAlign;
+import frc.robot.commands.PivotCommand;
 import frc.robot.commands.RightReefAlign;
+import frc.robot.commands.AutoWheels;
 import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.HumanAlign;
 import frc.robot.commands.ScoringCommand;
@@ -58,7 +60,7 @@ public class RobotContainer {
 
   // robot subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final Elevator m_elevator = new Elevator(14, 15); // CAN ID's
+  public final Elevator m_elevator = new Elevator(14, 15); // CAN ID's
   private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final ClimberPivot m_climberPivot = new ClimberPivot(13, 12);
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
@@ -70,15 +72,13 @@ public class RobotContainer {
   private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
   private final CommandJoystick m_flightStick = new CommandJoystick(1);
 
-  private final LeftReefAlign leftReefAlign = new LeftReefAlign(m_robotDrive, lime);
-
   // change elevator height here!
   private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
   private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 110, -1.39);
   private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.74);
   private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
   private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.29);
-
+  private final ScoringCommand kScoringCommandHome = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.5);
   /* backup commands if scoring commands become unreliable
   private final ElevatorCommand kElevatorCommandL1 = new ElevatorCommand(m_elevator, 40);
   private final ElevatorCommand kElevatorCommandL2 = new ElevatorCommand(m_elevator, 110);
@@ -88,8 +88,8 @@ public class RobotContainer {
   */
 
   // align with reef command
-  private final RightReefAlign rightSideAlign = new RightReefAlign(m_robotDrive, lime);
-  private final LeftReefAlign leftSideAlign = new LeftReefAlign(m_robotDrive, lime);
+  private final RightReefAlign rightSideAlign = new RightReefAlign(m_robotDrive, lime, 0, 0, 0);
+  private final LeftReefAlign leftSideAlign = new LeftReefAlign(m_robotDrive, lime, 0, 0, 0);
 
   public RobotContainer() {
 
@@ -137,6 +137,7 @@ public class RobotContainer {
     m_flightStick.button(9).onTrue(kScoringCommandL3.andThen(m_elevator.stop()));
     m_flightStick.button(10).onTrue(kScoringCommandL4.andThen(m_elevator.stop()));
     m_flightStick.button(11).onTrue(kScoringCommandL5.andThen(m_elevator.stop()));
+    m_flightStick.button(12).onTrue(kScoringCommandHome.andThen(m_elevator.stop()));
 
     // manual pivot control via setpoints
     m_flightStick.button(1).whileTrue(m_elevatorPivot.adjustSetpointUp());
@@ -151,13 +152,15 @@ public class RobotContainer {
     m_flightStick.button(6).whileTrue(m_bowWheels.outtake());
 
     // manual climber pivot control
-    new JoystickButton(m_driverController, 1).whileTrue(m_climberPivot.pivotIn());
-    new JoystickButton(m_driverController, 2).whileTrue(m_climberPivot.pivotOut());
+    new JoystickButton(m_driverController, 2).whileTrue(m_climberPivot.pivotIn());
+    new JoystickButton(m_driverController, 1).whileTrue(m_climberPivot.pivotOut());
     new JoystickButton(m_driverController, 3).whileTrue(m_climberPivot.slowPivotIn());
 
-    new JoystickButton(m_driverController, 5).whileTrue(lime.alignToTargetRight());
-    new JoystickButton(m_driverController, 6).whileTrue(lime.alignToTargetLeft());
-  }
+    new JoystickButton(m_driverController, 6).whileTrue(lime.alignToTargetRight());
+    new JoystickButton(m_driverController, 5).whileTrue(lime.alignToTargetLeft());
+
+    new JoystickButton(m_driverController, 7).whileTrue(new RunCommand(() -> m_robotDrive.m_gyro.reset()));
+}
 
   public Command doNothing() {
     return m_robotDrive.doNothing();
@@ -196,6 +199,7 @@ public class RobotContainer {
   }
 
   public Command leaveAndScoreCommand() {
+    
     TrajectoryConfig config = new TrajectoryConfig(
         AutoConstants.kMaxSpeedMetersPerSecond,
         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
@@ -204,7 +208,7 @@ public class RobotContainer {
     Trajectory traj = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(new Translation2d(-0.02, 0.02), new Translation2d(-0.025, 0.025)),
-        new Pose2d(-0.5, 0.02, new Rotation2d(-1.57)),
+        new Pose2d(-1, 0.02, new Rotation2d(-1.57)),
         config);
 
     var thetaController = new ProfiledPIDController(
@@ -223,53 +227,32 @@ public class RobotContainer {
         m_robotDrive);
 
     m_robotDrive.resetOdometry(traj.getInitialPose());
+    
+    LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.03, -0.5, 0);
+    ScoringCommand score = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
+    AutoWheels wheels = new AutoWheels(m_bowWheels);
+    ElevatorCommand elevator = new ElevatorCommand(m_elevator, 650);
+    //PivotCommand pivot = new PivotCommand(m_elevatorPivot, 1.74);
 
-    return swerveControllerCommand.andThen(leftReefAlign.andThen(() -> m_robotDrive.drive(0, 0, 0, false)));
+    return swerveControllerCommand.andThen(align.andThen(elevator.andThen(score)).andThen(wheels).andThen(() -> m_robotDrive.drive(0, 0, 0, false)));
   }
-
-
-
-  private Command bargeToReef() {
-    try {
-        PathPlannerPath path = PathPlannerPath.fromPathFile("bargeToReef");
-        return AutoBuilder.followPath(path);
-    } catch (Exception e) {
-        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-        return Commands.none(); 
-    }
-  }
-  private Command reefToHP() {
-    try {
-        PathPlannerPath path = PathPlannerPath.fromPathFile("reefToHP");
-        return AutoBuilder.followPath(path);
-    } catch (Exception e) {
-        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-        return Commands.none();
-    }
-  }
-  private Command HPtoReef() {
-    try {
-        PathPlannerPath path = PathPlannerPath.fromPathFile("HPtoReef");
-        return AutoBuilder.followPath(path);
-    } catch (Exception e) {
-        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-        return Commands.none(); 
-    }
-  }
-
     // send robot forward 
-  public Command testPath() {
+    public Command testPath() {
         return Commands.defer(() -> {
             try {
-                PathPlannerPath path = PathPlannerPath.fromPathFile("runForward");
+                PathPlannerPath path = PathPlannerPath.fromPathFile("forwardToReef");
                 return AutoBuilder.followPath(path);
             } catch (Exception e) {
                 DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
                 return Commands.none(); // return a default command
             }
-        }, Set.of(m_robotDrive)).andThen(() -> m_robotDrive.drive(0, 0, 0, false)); // Empty requirement set
+        }, Set.of(m_robotDrive)).andThen(() -> m_robotDrive.drive(0, 0, 0, false)); 
     }
 
+    public Command testLimelightCommand() {
+        LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.03, -0.5, 0);
+        return align;
+    }
 
     public Command leaveScoreFindScore() {
         return Commands.sequence(
@@ -283,6 +266,7 @@ public class RobotContainer {
                         return Commands.none();
                     }
                 }, Set.of(m_robotDrive)),
+                // add in bow weels
                 kScoringCommandL4
             )
         ).andThen(
@@ -298,6 +282,7 @@ public class RobotContainer {
                         return Commands.none();
                     }
                 }, Set.of(m_robotDrive)),
+                // add in bow wheels
                 kScoringCommandL5
             )
         ).andThen(
@@ -313,6 +298,7 @@ public class RobotContainer {
                         return Commands.none();
                     }
                 }, Set.of(m_robotDrive)),
+                // add in bow wheels
                 kScoringCommandL4
             )
         ).andThen(

@@ -25,7 +25,7 @@ public class Robot extends TimedRobot {
   private static final String kAuto1 = "leave community";
   private static final String kAuto2 = "do nothing";
   private static final String kAuto3 = "leave, score, find, score";
-  
+  private static final String kAuto4 = "leave, score, find, scor";
   // autonomous stuff
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser <>();
@@ -39,8 +39,9 @@ public class Robot extends TimedRobot {
 
     m_chooser.setDefaultOption("do nothing", kDefaultAuto);
     m_chooser.addOption("leave", kAuto1);
-    m_chooser.addOption("test path", kAuto2);
+    m_chooser.addOption("leave and score", kAuto2);
     m_chooser.addOption("leave, score, find, score", kAuto3);
+    m_chooser.addOption("test limelight", kAuto4);
   }
 
   @Override
@@ -78,6 +79,9 @@ public class Robot extends TimedRobot {
 
       case kAuto3:
         m_autonomousCommand = m_robotContainer.testPath();
+
+      case kAuto4:
+        m_autonomousCommand = m_robotContainer.testLimelightCommand();
     }
         
     if (m_autonomousCommand != null) {

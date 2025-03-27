@@ -54,7 +54,7 @@ public class Vision extends SubsystemBase {
     }
 
     public double getArea() {
-        return LimelightHelpers.getTA("");
+        return LimelightHelpers.getTA(""); 
     }
 
     public boolean hasValidTarget() {
@@ -70,11 +70,11 @@ public class Vision extends SubsystemBase {
 
         System.out.println("Test");
         Pose3d pose3d = getBotPose3d();
-
+        lightsOn();
         // (right stide) x = 0.3, z = -0.5
 
         // (left side) x = 0.0, z = -0.5
-        Translation3d target_point_tag_frame = new Translation3d(0.35, 0, -0.5);
+        Translation3d target_point_tag_frame = new Translation3d(0.36, 0, -0.45);
         
         Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation()) ;
 
@@ -83,10 +83,28 @@ public class Vision extends SubsystemBase {
 
         double xTranslation = xTranslationController.calculate(-target_point_robot_frame.getX(), 0.00);
         double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
-        double rot_cmd = pose3d.getRotation().getY() * 0.80;
+        double rot_cmd = pose3d.getRotation().getY() * 0.30;
 
-        m_drive.drive(xTranslation, yTranslation, 0, false);
+        m_drive.drive(xTranslation, yTranslation, rot_cmd, false);
       });
+    }
+
+    public Command coplanar() {
+        return run(() -> {
+            Pose3d pose3d = getBotPose3d();
+
+            Translation3d target_point_tag_frame = new Translation3d(0, 0, 0);
+
+            Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation());
+
+            double rot_cmd = pose3d.getRotation().getY() * .8;
+        });
+    }
+
+    public Command align() {
+        return Commands.sequence(
+            alignToTargetLeft().andThen(coplanar())
+        );
     }
 
     public Command alignToTargetLeft() {
@@ -96,9 +114,9 @@ public class Vision extends SubsystemBase {
         Pose3d pose3d = getBotPose3d();
 
         // (right stide) x = 0.3, z = -0.5
-
         // (left side) x = 0.0, z = -0.5
-        Translation3d target_point_tag_frame = new Translation3d(0.03, 0, -0.5);
+
+        Translation3d target_point_tag_frame = new Translation3d(0.064, 0, -0.45);
         
         Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation()) ;
 
@@ -109,13 +127,12 @@ public class Vision extends SubsystemBase {
         double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
         double rot_cmd = pose3d.getRotation().getY() * 0.80;
 
-        m_drive.drive(xTranslation, yTranslation, 0, false);
+        m_drive.drive(xTranslation, yTranslation, rot_cmd, false);
       });
     }
 
-
     public boolean aligned() {
-        return getBotPose3d().getX() < .005 && getBotPose3d().getZ() < .005;
+        return Math.hypot(getBotPose3d().getX(), getBotPose3d().getZ()) < .05;
     }
 
     public Command rotateToTarget() {
@@ -133,7 +150,7 @@ public class Vision extends SubsystemBase {
     
             //double xTranslation = xTranslationController.calculate(-target_point_robot_frame.getX(), 0.00);
             //double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
-            double rot_cmd = pose3d.getRotation().getY() * 0.80;
+            double rot_cmd = pose3d.getRotation().getY() * 0.30;
     
             if (hasValidTarget()) {
                 m_drive.drive(0, 0, rot_cmd, false);

@@ -85,7 +85,7 @@ public class DriveSubsystem extends SubsystemBase {
   // gyro sensor
   //private final ADIS16470_IMU m_gyro = new ADIS16470_IMU();
 
-  private AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI); 
+  public AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI); 
 
 
   // Odometry class for tracking robot pose
@@ -100,17 +100,12 @@ public class DriveSubsystem extends SubsystemBase {
       });
 
   public DriveSubsystem() {
-    
 
-    //m_gyro = new AHRS();
     m_gyro.reset();
-
-    // Load the RobotConfig from the GUI settings. You should probably
-    // store this in your Constants file
-    RobotConfig config; // Declare it outside
+    RobotConfig config;
     
     try {
-        config = RobotConfig.fromGUISettings(); // Initialize it inside the try block
+        config = RobotConfig.fromGUISettings(); 
     } catch (Exception e) {
         e.printStackTrace();
         config = new RobotConfig(0, 0, null, null); // Provide a default value or handle it properly
@@ -123,13 +118,12 @@ public class DriveSubsystem extends SubsystemBase {
       this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
       (speeds, feedforwards) -> driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
       new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-          new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-          new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+          new PIDConstants(2.0, 0.0, 0.0), // translational PID
+          new PIDConstants(2.0, 0.0, 0.0) // rotational PID
           ), config,
           () -> {
-              // Boolean supplier that controls when the path will be mirrored for the red alliance
-              // This will flip the path being followed to the red side of the field.
-              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+          // mirror path for both sides of field
           var alliance = DriverStation.getAlliance();
           if (alliance.isPresent()) {
             return alliance.get() == DriverStation.Alliance.Red;

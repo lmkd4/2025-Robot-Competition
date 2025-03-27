@@ -34,7 +34,12 @@ public class BowWheels extends SubsystemBase {
         });
     }
 
-    public void runWheelsInAuto() {
+    public void autoOuttake() {
+        motor1.set(-kWheelSpeed);
+        motor2.set(kWheelSpeed);
+    }
+
+    public void autoIntake() {
         motor1.set(-kWheelSpeed);
         motor2.set(kWheelSpeed);
     }
@@ -53,6 +58,7 @@ public class BowWheels extends SubsystemBase {
         });
     }
     
+
     public void resetSwitch() {
         ir_sensor.get();
     }
