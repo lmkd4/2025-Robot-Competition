@@ -51,17 +51,17 @@ public class ElevatorPivot extends SubsystemBase {
     
     // **Set home position based on current encoder value**
     public void homeSetpoints() {
-        pivotSetpoint = getPivotAngle();
+        pivotSetpoint = -2.1;
         feedback.reset();
     }
 
     public Command adjustSetpointUp() {
         return runOnce(() -> {
-            if (pivotSetpoint < 3.14) {
+            if (pivotSetpoint < 2.43) {
                 pivotSetpoint = getPivotAngle() + 0.25;
             }
             // add clamp
-            pivotSetpoint = Math.min(pivotSetpoint, 3.14);
+            pivotSetpoint = Math.min(pivotSetpoint, 2.43);
         });
     }
 
@@ -82,16 +82,16 @@ public class ElevatorPivot extends SubsystemBase {
 
     public Command adjustSetpointDown() {
         return runOnce(() -> {
-            if (pivotSetpoint > -1.57){
+            if (pivotSetpoint > -2.25){
                 pivotSetpoint = getPivotAngle() - 0.25;
             }
 
-            pivotSetpoint = Math.max(pivotSetpoint, -1.57);
+            pivotSetpoint = Math.max(pivotSetpoint, -2.25);
         });
     }
 
     public double getPivotAngle() {
-        return ((2*3.14159)*encoder.getPosition()) - 2.77;
+        return -(((2*3.14159)*encoder.getPosition()) - 2.77);
     }
 
     // try putting this code into a periodic method?
@@ -136,6 +136,6 @@ public class ElevatorPivot extends SubsystemBase {
 
     @Override 
     public void periodic() {
-
+        
     }
 }

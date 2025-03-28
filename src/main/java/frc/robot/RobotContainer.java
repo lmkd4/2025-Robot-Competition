@@ -73,6 +73,8 @@ public class RobotContainer {
   private final CommandJoystick m_flightStick = new CommandJoystick(1);
 
   // change elevator height here!
+
+  // SCORING PIVOT POSITION 1.35
   private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
   private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 110, -1.39);
   private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.74);
