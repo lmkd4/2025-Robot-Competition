@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -67,6 +68,11 @@ public class RobotContainer {
 
   public final Vision lime = new Vision(m_robotDrive);
 
+  AutoWheels wheels = new AutoWheels(m_bowWheels);
+
+
+  public Timer time;
+
   // joystick initialization
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
@@ -76,9 +82,9 @@ public class RobotContainer {
 
   // SCORING PIVOT POSITION 1.35
   private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
-  private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 110, -1.39);
-  private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.74);
-  private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
+  private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 110, -1.00);
+  private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.34);
+  private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.34);
   private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.29);
   private final ScoringCommand kScoringCommandHome = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.5);
   /* backup commands if scoring commands become unreliable
@@ -134,11 +140,11 @@ public class RobotContainer {
     */ 
 
     // scoring commands (elevator & pivot control)
-    m_flightStick.button(7).onTrue(kScoringCommandL1.andThen(m_elevator.stop()));
-    m_flightStick.button(8).onTrue(kScoringCommandL2.andThen(m_elevator.stop()));
-    m_flightStick.button(9).onTrue(kScoringCommandL3.andThen(m_elevator.stop()));
-    m_flightStick.button(10).onTrue(kScoringCommandL4.andThen(m_elevator.stop()));
-    m_flightStick.button(11).onTrue(kScoringCommandL5.andThen(m_elevator.stop()));
+    m_flightStick.button(7).onTrue(kScoringCommandL1);
+    m_flightStick.button(8).onTrue(kScoringCommandL2);
+    m_flightStick.button(9).onTrue(kScoringCommandL3);
+    m_flightStick.button(10).onTrue(kScoringCommandL4);
+    m_flightStick.button(11).onTrue(kScoringCommandL5);
     m_flightStick.button(12).onTrue(kScoringCommandHome.andThen(m_elevator.stop()));
 
     // manual pivot control via setpoints
@@ -166,6 +172,10 @@ public class RobotContainer {
 
   public Command doNothing() {
     return m_robotDrive.doNothing();
+  }
+
+  public Command testFunctions() {
+    return kScoringCommandL2.andThen(wheels);
   }
 
   public Command leaveCommunityCommand() {

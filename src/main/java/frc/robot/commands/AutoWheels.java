@@ -32,6 +32,6 @@ public class AutoWheels extends Command {
 
   @Override
   public boolean isFinished() {
-      return false;
+      return time.hasElapsed(5);
   }
 }

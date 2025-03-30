@@ -153,6 +153,30 @@ public class Elevator extends SubsystemBase {
         return false;
     }
 
+    public Command control() {
+        return run(() -> {
+            double currentHeight = getElevatorHeight();
+        
+            if (!Double.isNaN(currentHeight)) {
+                double error = elevatorSetpoint - currentHeight;
+                
+                if (Math.abs(error) < 10.0) {
+                    motor1.set(0);
+                    motor2.set(0);
+                    return;
+                }
+                double output = elevatorController.calculate(currentHeight, elevatorSetpoint);
+               
+                if (Math.abs(output) < 0.05) { 
+                    output = 0;
+                }
+    
+                motor1.set(output);
+                motor2.set(-output);
+            }
+        });
+    }
+
     @Override
     public void periodic() {
         

@@ -41,12 +41,10 @@ public class ElevatorPivot extends SubsystemBase {
         pivotSetpoint = pivotRateLimiter.calculate(setpoint);
     }
 
-    public boolean isStable() {
-        return Math.abs(feedback.getVelocityError()) < 0.05; // Ensure it's not moving
-    }
-
-    public boolean setpointWithinThreshold(double setpoint) {
-        return (getPivotAngle() - setpoint) <= 1;
+    public boolean withinThreshold() {
+        return (Math.abs(getPivotAngle()) - Math.abs(pivotSetpoint)) <= 0.05 
+        &&
+        (Math.abs(getPivotAngle()) - Math.abs(pivotSetpoint) >= -0.05);
     }
     
     // **Set home position based on current encoder value**
@@ -114,6 +112,18 @@ public class ElevatorPivot extends SubsystemBase {
 
             motor1.set(-finalOutput);
         });
+    }
+
+    public void voidControlPivot() {
+        double pidOutput = feedback.calculate(getPivotAngle(), pivotSetpoint);
+        double ffOutput = feedforward.calculate(getPivotAngle() - (0.209), 0);
+        double finalOutput = ffOutput + pidOutput;
+
+        SmartDashboard.putNumber("Pivot Encoder Position", getPivotAngle());
+        SmartDashboard.putNumber("Pivot Setpoint", pivotSetpoint);
+        SmartDashboard.putNumber("Pivot Error", feedback.getPositionError());
+
+        motor1.set(-finalOutput);
     }
 
     public Command stop() {

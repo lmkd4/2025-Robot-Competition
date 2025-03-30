@@ -32,14 +32,13 @@ public class ScoringCommand extends Command {
 
     SmartDashboard.putNumber("Elevator height: ", m_elevator.getElevatorHeight());
 
-    double elevatorError = targetDistance - m_elevator.getElevatorHeight();
-    double pivotError = Math.abs(pivotSetpoint - m_elevatorPivot.getPivotAngle());
+    double elevatorError = Math.abs(m_elevator.getElevatorHeight() - targetDistance);
+    double pivotError = Math.abs(m_elevatorPivot.getPivotAngle()) - Math.abs(pivotSetpoint);
+
     System.out.println("Elevator Error: " + elevatorError + ", Pivot Error: " + pivotError);
 
-    System.out.println("");
     m_elevator.controlElevator(); 
-    m_elevatorPivot.controlPivot();
-
+    m_elevatorPivot.voidControlPivot();
   }
 
   @Override
@@ -52,10 +51,10 @@ public class ScoringCommand extends Command {
   @Override
   public boolean isFinished() {
 
-    double elevatorError = targetDistance - m_elevator.getElevatorHeight();
-    double pivotError = Math.abs(pivotSetpoint - m_elevatorPivot.getPivotAngle());
+    boolean elevatorError = Math.abs(targetDistance - m_elevator.getElevatorHeight()) <= 10;
+    boolean posPivotError = Math.abs(m_elevatorPivot.getPivotAngle()) - Math.abs(pivotSetpoint) <= 0.25;
+    boolean negPivotError = Math.abs(m_elevatorPivot.getPivotAngle()) - Math.abs(pivotSetpoint) >= -0.25;
 
-
-    return (elevatorError <= 10 && pivotError <= 0.005);
+    return (elevatorError && posPivotError && negPivotError);
   }
 }
