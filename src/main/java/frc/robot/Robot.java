@@ -41,7 +41,7 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("do nothing", kDefaultAuto);
     m_chooser.addOption("leave", kAuto1);
     m_chooser.addOption("leave and score", kAuto2);
-    m_chooser.addOption("leave, score, find, score", kAuto3);
+    m_chooser.addOption("FORWARD TO REEF", kAuto3);
     m_chooser.addOption("test limelight", kAuto4);
     m_chooser.addOption("test elevator and wheels", kAuto5);
   }
@@ -80,7 +80,7 @@ public class Robot extends TimedRobot {
         break;
 
       case kAuto3:
-        m_autonomousCommand = m_robotContainer.testPath();
+        m_autonomousCommand = m_robotContainer.forwardToReef();
         break;
 
       case kAuto4:
@@ -105,6 +105,8 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+
+    m_robotContainer.homeSetpoints();
   }
 
   @Override

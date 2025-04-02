@@ -49,7 +49,9 @@ public class ElevatorPivot extends SubsystemBase {
     
     // **Set home position based on current encoder value**
     public void homeSetpoints() {
-        pivotSetpoint = -2.1;
+
+        pivotSetpoint = getPivotAngle();
+        pivotSetpoint = clamp(2.43, -2.25, pivotSetpoint);
         feedback.reset();
     }
 
@@ -138,14 +140,21 @@ public class ElevatorPivot extends SubsystemBase {
         return new RunCommand(() -> motor1.set(-0.2), this);
     }
     
-    public Command findSetpoint(double target) {
-        return runOnce(() -> {
-            pivotSetpoint = target;
-        });
-    }   
+
+    public double clamp(double max, double min, double setpoint) {
+        if (setpoint < min) {
+            return min;
+        }
+
+        else if (setpoint > max) {
+            return max;
+        }
+
+        return setpoint;
+    }
 
     @Override 
     public void periodic() {
-        
+        SmartDashboard.putNumber("Pivot Angle", getPivotAngle());
     }
 }

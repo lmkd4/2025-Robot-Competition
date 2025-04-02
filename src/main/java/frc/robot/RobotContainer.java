@@ -68,9 +68,6 @@ public class RobotContainer {
 
   public final Vision lime = new Vision(m_robotDrive);
 
-  AutoWheels wheels = new AutoWheels(m_bowWheels);
-
-
   public Timer time;
 
   // joystick initialization
@@ -85,7 +82,7 @@ public class RobotContainer {
   private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 110, -1.00);
   private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.34);
   private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.34);
-  private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.29);
+  private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.96);
   private final ScoringCommand kScoringCommandHome = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.5);
   /* backup commands if scoring commands become unreliable
   private final ElevatorCommand kElevatorCommandL1 = new ElevatorCommand(m_elevator, 40);
@@ -127,8 +124,8 @@ public class RobotContainer {
                 true);
                 }
         }
-    }, m_robotDrive));
-}
+            }, m_robotDrive));
+        }
 
   private void configureButtonBindings() {
 
@@ -168,14 +165,18 @@ public class RobotContainer {
     new JoystickButton(m_driverController, 5).whileTrue(lime.alignToTargetLeft());
 
     new JoystickButton(m_driverController, 7).whileTrue(new RunCommand(() -> m_robotDrive.m_gyro.reset()));
-}
+  }
 
   public Command doNothing() {
     return m_robotDrive.doNothing();
   }
 
   public Command testFunctions() {
-    return kScoringCommandL2.andThen(wheels);
+    return kScoringCommandL1;
+  }
+
+  public void homeSetpoints() {
+    m_elevatorPivot.homeSetpoints();
   }
 
   public Command leaveCommunityCommand() {
@@ -249,7 +250,7 @@ public class RobotContainer {
     return swerveControllerCommand.andThen(align.andThen(elevator.andThen(score)).andThen(wheels).andThen(() -> m_robotDrive.drive(0, 0, 0, false)));
   }
     // send robot forward 
-    public Command testPath() {
+    public Command forwardToReef() {
         return Commands.defer(() -> {
             try {
                 PathPlannerPath path = PathPlannerPath.fromPathFile("forwardToReef");
@@ -260,6 +261,8 @@ public class RobotContainer {
             }
         }, Set.of(m_robotDrive)).andThen(() -> m_robotDrive.drive(0, 0, 0, false)); 
     }
+
+
 
     public Command testLimelightCommand() {
         LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.03, -0.5, 0);
