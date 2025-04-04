@@ -61,7 +61,7 @@ public class RobotContainer {
 
   // robot subsystems
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  public final Elevator m_elevator = new Elevator(14, 15); // CAN ID's
+  private final Elevator m_elevator = new Elevator(14, 15); // CAN ID's
   private final ElevatorPivot m_elevatorPivot = new ElevatorPivot(16);
   private final ClimberPivot m_climberPivot = new ClimberPivot(13, 12);
   private final BowWheels m_bowWheels = new BowWheels(17, 18);
@@ -80,8 +80,8 @@ public class RobotContainer {
   // SCORING PIVOT POSITION 1.35
   private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
   private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 110, -1.00);
-  private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.34);
-  private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.34);
+  private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.27);
+  private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.27);
   private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.96);
   private final ScoringCommand kScoringCommandHome = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.5);
   /* backup commands if scoring commands become unreliable
@@ -104,7 +104,7 @@ public class RobotContainer {
     m_elevatorPivot.setDefaultCommand(m_elevatorPivot.controlPivot());
     m_elevator.setDefaultCommand(m_elevator.getElevatorHeightCommand());
     lime.setDefaultCommand(lime.displayValues());
-    m_bowWheels.setDefaultCommand(m_bowWheels.stop());
+    m_bowWheels.setDefaultCommand(m_bowWheels.stopTele());
 
     m_robotDrive.setDefaultCommand(
         new RunCommand(() -> {
@@ -188,7 +188,7 @@ public class RobotContainer {
     Trajectory traj = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
-        new Pose2d(-1.5, 0, new Rotation2d(0)),
+        new Pose2d(-1.5, 0, new Rotation2d(-1.57)),
         config);
 
     var thetaController = new ProfiledPIDController(
@@ -217,11 +217,11 @@ public class RobotContainer {
         AutoConstants.kMaxSpeedMetersPerSecond,
         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
         .setKinematics(DriveConstants.kDriveKinematics);
-
+        
     Trajectory traj = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
-        List.of(new Translation2d(-0.02, 0.02), new Translation2d(-0.025, 0.025)),
-        new Pose2d(-1, 0.02, new Rotation2d(-1.57)),
+        List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
+        new Pose2d(-1.5, 0, new Rotation2d(-1.833)),
         config);
 
     var thetaController = new ProfiledPIDController(
@@ -240,14 +240,19 @@ public class RobotContainer {
         m_robotDrive);
 
     m_robotDrive.resetOdometry(traj.getInitialPose());
+
+
     
-    LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.03, -0.5, 0);
-    ScoringCommand score = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.74);
+    LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.0414, -0.5284, 0);
+
+    ScoringCommand score = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.439);
+    ScoringCommand home = new ScoringCommand(m_elevator, m_elevatorPivot, 650, -1.39);
+
     AutoWheels wheels = new AutoWheels(m_bowWheels);
-    ElevatorCommand elevator = new ElevatorCommand(m_elevator, 650);
+
     //PivotCommand pivot = new PivotCommand(m_elevatorPivot, 1.74);
 
-    return swerveControllerCommand.andThen(align.andThen(elevator.andThen(score)).andThen(wheels).andThen(() -> m_robotDrive.drive(0, 0, 0, false)));
+    return swerveControllerCommand.andThen(align.andThen(score.andThen(wheels.andThen(home.andThen(() -> m_robotDrive.drive(0, 0, 0, false))))));
   }
     // send robot forward 
     public Command forwardToReef() {

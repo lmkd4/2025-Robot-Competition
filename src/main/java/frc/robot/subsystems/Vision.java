@@ -68,8 +68,14 @@ public class Vision extends SubsystemBase {
     public Command alignToTargetRight() {
         return run(() -> {
 
+            if (!hasValidTarget()) {
+                m_drive.drive(0, 0, 0, false);
+                return;
+            }
+
         System.out.println("Test");
         Pose3d pose3d = getBotPose3d();
+        
         lightsOn();
         // (right stide) x = 0.3, z = -0.5
 
@@ -132,7 +138,13 @@ public class Vision extends SubsystemBase {
     }
 
     public boolean aligned() {
-        return Math.hypot(getBotPose3d().getX(), getBotPose3d().getZ()) < .05;
+        Pose3d pose3d = getBotPose3d();
+
+        Translation3d target_point_tag_frame = new Translation3d(0.064, 0, -0.45);
+        
+        Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation());
+
+        return Math.hypot(target_point_robot_frame.getX(), target_point_robot_frame.getZ()) < .025;
     }
 
     public Command rotateToTarget() {

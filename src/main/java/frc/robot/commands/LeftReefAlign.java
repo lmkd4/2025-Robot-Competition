@@ -42,6 +42,11 @@ public class LeftReefAlign extends Command {
     public void execute() {
       System.out.println("Command is running...");
 
+      if (!m_lime.hasValidTarget()) {
+        m_drive.drive(0, 0, 0, false);
+        return;
+      }
+
       Translation3d target_point_tag_frame = new Translation3d(xTarget, yTarget, rotTarget);
 
       Pose3d pose3d = m_lime.getBotPose3d();
@@ -51,7 +56,7 @@ public class LeftReefAlign extends Command {
       double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
       double rot_cmd = pose3d.getRotation().getY() * 0.80;
 
-      m_drive.drive(xTranslation, yTranslation, 0, false);
+      m_drive.drive(xTranslation, yTranslation, rot_cmd, false);
     }
   
     @Override

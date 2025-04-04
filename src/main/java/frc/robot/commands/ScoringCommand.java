@@ -2,14 +2,17 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.RobotContainer;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 
 public class ScoringCommand extends Command {
   
-  private final Elevator m_elevator;
-  private final ElevatorPivot m_elevatorPivot;
+  public Elevator m_elevator;
+  public ElevatorPivot m_elevatorPivot;
 
+  public RobotContainer m_robotContainer;
+  
   private final double targetDistance;
   private final double pivotSetpoint;
 
@@ -19,6 +22,8 @@ public class ScoringCommand extends Command {
     
     this.targetDistance = height;
     this.pivotSetpoint = angle;
+
+    addRequirements(m_elevator, m_elevatorPivot);
   }
 
   @Override
@@ -52,9 +57,8 @@ public class ScoringCommand extends Command {
   public boolean isFinished() {
 
     boolean elevatorError = Math.abs(targetDistance - m_elevator.getElevatorHeight()) <= 10;
-    boolean posPivotError = Math.abs(m_elevatorPivot.getPivotAngle()) - Math.abs(pivotSetpoint) <= 0.25;
-    boolean negPivotError = Math.abs(m_elevatorPivot.getPivotAngle()) - Math.abs(pivotSetpoint) >= -0.25;
+    boolean posPivotError = Math.abs(m_elevatorPivot.getPivotAngle() - pivotSetpoint) <= 0.25;
 
-    return (elevatorError && posPivotError && negPivotError);
+    return (elevatorError && posPivotError);
   }
 }

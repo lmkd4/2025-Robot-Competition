@@ -62,6 +62,8 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
 
+    m_robotContainer.homeSetpoints();
+
     m_autoSelected = m_chooser.getSelected();
 
     System.out.println("Auto Selected:" + m_autoSelected);

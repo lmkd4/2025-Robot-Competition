@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.units.Measure;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -81,6 +82,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public void controlElevator() {
+        System.out.println("CONTROLLING ELEVATOR");
         double currentHeight = getElevatorHeight();
         
         if (!Double.isNaN(currentHeight)) {
@@ -91,6 +93,7 @@ public class Elevator extends SubsystemBase {
                 motor2.set(0);
                 return;
             }
+            
             double output = elevatorController.calculate(currentHeight, elevatorSetpoint);
            
             if (Math.abs(output) < 0.05) { 
@@ -108,8 +111,6 @@ public class Elevator extends SubsystemBase {
     
     public Command getElevatorHeightCommand() {
         return run(() -> {
-            SmartDashboard.putNumber("Target:", getElevatorHeight());
-
             getElevatorHeight();
             motor1.set(0);
             motor2.set(0);

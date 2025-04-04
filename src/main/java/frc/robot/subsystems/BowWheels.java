@@ -13,62 +13,51 @@ public class BowWheels extends SubsystemBase {
 
     private final SparkMax motor1;
     private final SparkMax motor2;
-    private final DigitalInput ir_sensor = new DigitalInput(0);
     private final double kWheelSpeed = 0.4;
+
+    private double speed = 0;
 
     public BowWheels(int motor1Port, int motor2Port) {
         motor1 = new SparkMax(motor1Port, MotorType.kBrushless);
         motor2 = new SparkMax(motor2Port, MotorType.kBrushless);
     }
 
-    public Command intake() {
-        return run(() -> {
-             if (!isIRSensorTriggered()) {
-                motor1.set(kWheelSpeed);
-                motor2.set(-kWheelSpeed);
-            }
-             else {
-              motor1.set(kWheelSpeed);
-                motor2.set(-kWheelSpeed);
-             }
-        });
-    }
-
     public void autoOuttake() {
-        motor1.set(-kWheelSpeed);
-        motor2.set(kWheelSpeed);
+        speed = -kWheelSpeed;
     }
 
     public void autoIntake() {
-        motor1.set(-kWheelSpeed);
-        motor2.set(kWheelSpeed);
+        speed = kWheelSpeed;
     }
 
     public Command outtake() {
         return run(() -> {
-            motor1.set(-kWheelSpeed);
-            motor2.set(kWheelSpeed);
+            speed = -kWheelSpeed;
         });
     }
 
-    public Command stop() {
+    public Command stopTele() {
         return run(() -> {
-            motor1.set(0);
-            motor2.set(0);
+            speed = 0;
         });
+    }
+
+    public Command intake() {
+        return run(() -> {
+            speed = kWheelSpeed;
+        });
+    }
+
+    public void stop() {
+            System.out.println("STOP");
+            speed = 0;
     }
     
-
-    public void resetSwitch() {
-        ir_sensor.get();
-    }
-
-    public boolean isIRSensorTriggered() {
-        return ir_sensor.get();
-    }
-
     @Override
     public void periodic() {
-        
+        motor1.set(speed);
+        motor2.set(-speed);
+
+        System.out.println(speed);
     }
 }

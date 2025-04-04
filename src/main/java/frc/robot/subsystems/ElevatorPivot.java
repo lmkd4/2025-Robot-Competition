@@ -156,5 +156,15 @@ public class ElevatorPivot extends SubsystemBase {
     @Override 
     public void periodic() {
         SmartDashboard.putNumber("Pivot Angle", getPivotAngle());
+        double pidOutput = feedback.calculate(getPivotAngle(), pivotSetpoint);
+        double ffOutput = feedforward.calculate(getPivotAngle() - (0.209), 0);
+        double finalOutput = ffOutput + pidOutput;
+
+        SmartDashboard.putNumber("Pivot Encoder Position", getPivotAngle());
+        SmartDashboard.putNumber("Pivot Setpoint", pivotSetpoint);
+        SmartDashboard.putNumber("Pivot Error", feedback.getPositionError());
+
+        motor1.set(-finalOutput);
+
     }
 }
