@@ -78,10 +78,10 @@ public class RobotContainer {
   // change elevator height here!
 
   // SCORING PIVOT POSITION 1.35
-  private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, -1.39);
-  private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 110, -1.00);
-  private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.27);
-  private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.27);
+  private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 15, -1.96);
+  private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 115, -1.96);
+  private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.1);
+  private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.1);
   private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.96);
   private final ScoringCommand kScoringCommandHome = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.5);
   /* backup commands if scoring commands become unreliable
@@ -188,7 +188,7 @@ public class RobotContainer {
     Trajectory traj = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
-        new Pose2d(-1.5, 0, new Rotation2d(-1.57)),
+        new Pose2d(-1.5, 0, new Rotation2d(0)),
         config);
 
     var thetaController = new ProfiledPIDController(
@@ -221,7 +221,7 @@ public class RobotContainer {
     Trajectory traj = TrajectoryGenerator.generateTrajectory(
         new Pose2d(0, 0, new Rotation2d(0)),
         List.of(new Translation2d(-0.5, 0.02), new Translation2d(-1, -0.02)),
-        new Pose2d(-1.5, 0, new Rotation2d(-1.833)),
+        new Pose2d(-1.5, 0, new Rotation2d(-1.9)),
         config);
 
     var thetaController = new ProfiledPIDController(
@@ -243,7 +243,7 @@ public class RobotContainer {
 
 
     
-    LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.0414, -0.5284, 0);
+    LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.0612, -0.545, 0);
 
     ScoringCommand score = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.439);
     ScoringCommand home = new ScoringCommand(m_elevator, m_elevatorPivot, 650, -1.39);

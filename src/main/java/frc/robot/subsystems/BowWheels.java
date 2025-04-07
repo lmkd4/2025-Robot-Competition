@@ -44,7 +44,7 @@ public class BowWheels extends SubsystemBase {
 
     public Command intake() {
         return run(() -> {
-            speed = kWheelSpeed;
+            speed = .6;
         });
     }
 

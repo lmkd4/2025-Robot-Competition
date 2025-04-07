@@ -59,11 +59,11 @@ public class ClimberPivot extends SubsystemBase {
         return new RunCommand(() -> {
             motor1.set(-kPivotSpeed);
             motor2.set(kPivotSpeed);
-
+            /*
             if (getClimberAngle() >= min) {
                 motor1.set(0);
                 motor2.set(0);
-            }
+            }*/
         });
     }
 

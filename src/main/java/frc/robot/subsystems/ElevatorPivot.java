@@ -58,7 +58,7 @@ public class ElevatorPivot extends SubsystemBase {
     public Command adjustSetpointUp() {
         return runOnce(() -> {
             if (pivotSetpoint < 2.43) {
-                pivotSetpoint = getPivotAngle() + 0.25;
+                pivotSetpoint = getPivotAngle() + 0.4;
             }
             // add clamp
             pivotSetpoint = Math.min(pivotSetpoint, 2.43);
@@ -83,7 +83,7 @@ public class ElevatorPivot extends SubsystemBase {
     public Command adjustSetpointDown() {
         return runOnce(() -> {
             if (pivotSetpoint > -2.25){
-                pivotSetpoint = getPivotAngle() - 0.25;
+                pivotSetpoint = getPivotAngle() - 0.4;
             }
 
             pivotSetpoint = Math.max(pivotSetpoint, -2.25);
