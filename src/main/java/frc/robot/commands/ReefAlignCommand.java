@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 
-public class RightReefAlign extends Command {
+public class ReefAlignCommand extends Command {
 
     private final DriveSubsystem m_drive;
     private final Vision m_lime;
@@ -25,7 +25,7 @@ public class RightReefAlign extends Command {
     private PIDController xTranslationController = new PIDController(kP, kI, kD);
     private PIDController yTranslationController = new PIDController(kP, kI, kD);
 
-    public RightReefAlign(DriveSubsystem subsystem1, Vision subsystem2, double x, double y, double rot) {
+    public ReefAlignCommand(DriveSubsystem subsystem1, Vision subsystem2, double x, double y, double rot) {
         m_drive = subsystem1;
         m_lime = subsystem2;
 
@@ -40,18 +40,25 @@ public class RightReefAlign extends Command {
   
     @Override
     public void execute() {
+      // differentiate between two different limelights?
+      m_lime.reefLightsOn();
       System.out.println("Command is running...");
+
+      if (!m_lime.hasValidTargetReef()) {
+        m_drive.drive(0, 0, 0, false);
+        return;
+      }
 
       Translation3d target_point_tag_frame = new Translation3d(xTarget, yTarget, rotTarget);
 
-      Pose3d pose3d = m_lime.getBotPose3d();
+      Pose3d pose3d = m_lime.getBotPose3dReef();
       Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation());
 
       double xTranslation = xTranslationController.calculate(-target_point_robot_frame.getX(), 0.00);
       double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
       double rot_cmd = pose3d.getRotation().getY() * 0.80;
 
-      m_drive.drive(xTranslation, yTranslation, 0, false);
+      m_drive.drive(xTranslation, yTranslation, rot_cmd, false);
     }
   
     @Override
@@ -62,6 +69,6 @@ public class RightReefAlign extends Command {
   
     @Override
     public boolean isFinished() {
-      return Math.hypot(xTarget, yTarget) < .05 && rotTarget < .05;
+      return m_lime.aligned();
     }
   }

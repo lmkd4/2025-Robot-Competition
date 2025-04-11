@@ -43,12 +43,10 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorPivot;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.BowWheels;
-import frc.robot.commands.LeftReefAlign;
+import frc.robot.commands.ReefAlignCommand;
 import frc.robot.commands.PivotCommand;
-import frc.robot.commands.RightReefAlign;
 import frc.robot.commands.AutoWheels;
 import frc.robot.commands.ElevatorCommand;
-import frc.robot.commands.HumanAlign;
 import frc.robot.commands.ScoringCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -70,31 +68,18 @@ public class RobotContainer {
 
   public Timer time;
 
-  // joystick initialization
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   private final XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
   private final CommandJoystick m_flightStick = new CommandJoystick(1);
 
-  // change elevator height here!
-
-  // SCORING PIVOT POSITION 1.35
   private final ScoringCommand kScoringCommandL1 = new ScoringCommand(m_elevator, m_elevatorPivot, 15, -1.96);
   private final ScoringCommand kScoringCommandL2 = new ScoringCommand(m_elevator, m_elevatorPivot, 115, -1.96);
   private final ScoringCommand kScoringCommandL3 = new ScoringCommand(m_elevator, m_elevatorPivot, 40, 1.1);
   private final ScoringCommand kScoringCommandL4 = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.1);
   private final ScoringCommand kScoringCommandL5 = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.96);
   private final ScoringCommand kScoringCommandHome = new ScoringCommand(m_elevator, m_elevatorPivot, 295, -1.5);
-  /* backup commands if scoring commands become unreliable
-  private final ElevatorCommand kElevatorCommandL1 = new ElevatorCommand(m_elevator, 40);
-  private final ElevatorCommand kElevatorCommandL2 = new ElevatorCommand(m_elevator, 110);
-  private final ElevatorCommand kElevatorCommandL3 = new ElevatorCommand(m_elevator, 40);
-  private final ElevatorCommand kElevatorCommandL4 = new ElevatorCommand(m_elevator, 650);
-  private final ElevatorCommand kElevatorCommandL5 = new ElevatorCommand(m_elevator, 295);
-  */
 
-  // align with reef command
-  private final RightReefAlign rightSideAlign = new RightReefAlign(m_robotDrive, lime, 0, 0, 0);
-  private final LeftReefAlign leftSideAlign = new LeftReefAlign(m_robotDrive, lime, 0, 0, 0);
+  private final ReefAlignCommand leftSideAlign = new ReefAlignCommand(m_robotDrive, lime, 0, 0, 0);
 
   public RobotContainer() {
 
@@ -128,14 +113,6 @@ public class RobotContainer {
         }
 
   private void configureButtonBindings() {
-
-    /* lock swerve by "x" config
-    new JoystickButton(m_driverController, Button.kR1.value)
-      .whileTrue(new RunCommand(
-          () -> m_robotDrive.setX(),
-          m_robotDrive));
-    */ 
-
     // scoring commands (elevator & pivot control)
     m_flightStick.button(7).onTrue(kScoringCommandL1);
     m_flightStick.button(8).onTrue(kScoringCommandL2);
@@ -167,16 +144,12 @@ public class RobotContainer {
     new JoystickButton(m_driverController, 7).whileTrue(new RunCommand(() -> m_robotDrive.m_gyro.reset()));
   }
 
-  public Command doNothing() {
-    return m_robotDrive.doNothing();
-  }
-
-  public Command testFunctions() {
-    return kScoringCommandL1;
-  }
-
   public void homeSetpoints() {
     m_elevatorPivot.homeSetpoints();
+  }
+
+  public Command doNothing() {
+    return m_robotDrive.doNothing();
   }
 
   public Command leaveCommunityCommand() {
@@ -211,8 +184,7 @@ public class RobotContainer {
     return swerveControllerCommand.andThen((() -> m_robotDrive.drive(0, 0, 0, false)));
   }
 
-  public Command leaveAndScoreCommand() {
-    
+  public Command leaveAndScoreCommandCenter() {
     TrajectoryConfig config = new TrajectoryConfig(
         AutoConstants.kMaxSpeedMetersPerSecond,
         AutoConstants.kMaxAccelerationMetersPerSecondSquared)
@@ -241,89 +213,150 @@ public class RobotContainer {
 
     m_robotDrive.resetOdometry(traj.getInitialPose());
 
-
-    
-    LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.0612, -0.545, 0);
-
+    ReefAlignCommand align = new ReefAlignCommand(m_robotDrive, lime, 0.0612, -0.545, 0);
     ScoringCommand score = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.439);
     ScoringCommand home = new ScoringCommand(m_elevator, m_elevatorPivot, 650, -1.39);
-
     AutoWheels wheels = new AutoWheels(m_bowWheels);
-
-    //PivotCommand pivot = new PivotCommand(m_elevatorPivot, 1.74);
 
     return swerveControllerCommand.andThen(align.andThen(score.andThen(wheels.andThen(home.andThen(() -> m_robotDrive.drive(0, 0, 0, false))))));
   }
-    // send robot forward 
-    public Command forwardToReef() {
-        return Commands.defer(() -> {
-            try {
-                PathPlannerPath path = PathPlannerPath.fromPathFile("forwardToReef");
-                return AutoBuilder.followPath(path);
-            } catch (Exception e) {
-                DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-                return Commands.none(); // return a default command
-            }
-        }, Set.of(m_robotDrive)).andThen(() -> m_robotDrive.drive(0, 0, 0, false)); 
-    }
 
+  public Command leaveAndScoreCommandLeft() {
+    TrajectoryConfig config = new TrajectoryConfig(
+        AutoConstants.kMaxSpeedMetersPerSecond,
+        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+        .setKinematics(DriveConstants.kDriveKinematics);
+        
+    Trajectory traj = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(0, 0, new Rotation2d(0)),
+        List.of(),
+        new Pose2d(-2.2, 0.5, new Rotation2d(-2.618)),
+        config);
 
+    var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    public Command testLimelightCommand() {
-        LeftReefAlign align = new LeftReefAlign(m_robotDrive, lime, 0.03, -0.5, 0);
-        return align;
-    }
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        traj,
+        m_robotDrive::getPose,
+        DriveConstants.kDriveKinematics,
 
-    public Command leaveScoreFindScore() {
-        return Commands.sequence(
-            Commands.parallel(
-                Commands.defer(() -> {
-                    try {
-                        PathPlannerPath path = PathPlannerPath.fromPathFile("bargeToReef");
-                        return AutoBuilder.followPath(path);
-                    } catch (Exception e) {
-                        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-                        return Commands.none();
-                    }
-                }, Set.of(m_robotDrive)),
-                // add in bow weels
-                kScoringCommandL4
-            )
-        ).andThen(
-            m_bowWheels.outtake().withTimeout(1)
-        ).andThen(
-            Commands.parallel(
-                Commands.defer(() -> {
-                    try {
-                        PathPlannerPath path = PathPlannerPath.fromPathFile("reefToHP");
-                        return AutoBuilder.followPath(path);
-                    } catch (Exception e) {
-                        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-                        return Commands.none();
-                    }
-                }, Set.of(m_robotDrive)),
-                // add in bow wheels
-                kScoringCommandL5
-            )
-        ).andThen(
-            m_bowWheels.intake().withTimeout(1)
-        ).andThen(
-            Commands.parallel(
-                Commands.defer(() -> {
-                    try {
-                        PathPlannerPath path = PathPlannerPath.fromPathFile("HPtoReef");
-                        return AutoBuilder.followPath(path);
-                    } catch (Exception e) {
-                        DriverStation.reportError("big oops: " + e.getMessage(), e.getStackTrace());
-                        return Commands.none();
-                    }
-                }, Set.of(m_robotDrive)),
-                // add in bow wheels
-                kScoringCommandL4
-            )
-        ).andThen(
-            m_bowWheels.outtake().withTimeout(1)
-        );
-  } 
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
+
+    m_robotDrive.resetOdometry(traj.getInitialPose());
+
+    ReefAlignCommand align = new ReefAlignCommand(m_robotDrive, lime, 0.0612, -0.645, 0);
+    ScoringCommand score = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.439);
+    ScoringCommand home = new ScoringCommand(m_elevator, m_elevatorPivot, 650, -1.39);
+    AutoWheels wheels = new AutoWheels(m_bowWheels);
+
+    return swerveControllerCommand.andThen(align.andThen(score.andThen(wheels.andThen(home.andThen(() -> m_robotDrive.drive(0, 0, 0, false))))));
+  }
+
+  public Command leaveAndScoreCommandRight() {
+    TrajectoryConfig config = new TrajectoryConfig(
+        AutoConstants.kMaxSpeedMetersPerSecond,
+        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+        .setKinematics(DriveConstants.kDriveKinematics);
+        
+        Trajectory traj = TrajectoryGenerator.generateTrajectory(
+            new Pose2d(0, 0, new Rotation2d(0)),
+            List.of(),
+            new Pose2d(-2.2, -0.5, new Rotation2d(1.0472)),
+            config);
+
+    var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        traj,
+        m_robotDrive::getPose,
+        DriveConstants.kDriveKinematics,
+
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
+
+    m_robotDrive.resetOdometry(traj.getInitialPose());
+
+    ReefAlignCommand align = new ReefAlignCommand(m_robotDrive, lime, 0.0612, -0.545, 0);
+    ScoringCommand score = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.439);
+    ScoringCommand home = new ScoringCommand(m_elevator, m_elevatorPivot, 650, -1.39);
+    AutoWheels wheels = new AutoWheels(m_bowWheels);
+
+    return swerveControllerCommand.andThen(align.andThen(score.andThen(wheels.andThen(home.andThen(() -> m_robotDrive.drive(0, 0, 0, false))))));
+  }
+
+  public Command twoCoralLeft() {
+    TrajectoryConfig config = new TrajectoryConfig(
+        AutoConstants.kMaxSpeedMetersPerSecond,
+        AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+        .setKinematics(DriveConstants.kDriveKinematics);
+        
+    Trajectory traj = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(0, 0, new Rotation2d(0)),
+        List.of(),
+        new Pose2d(-2.2, 0.5, new Rotation2d(-2.618)),
+        config);
+    Trajectory traj1 = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(-2.2, 0.5, new Rotation2d(-2.618)),
+        List.of(),
+        new Pose2d(-5.28, -2.311, new Rotation2d(-1.46)),
+        config);
+    Trajectory traj2 = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(-5.28, -2.311, new Rotation2d(-1.46)),
+        List.of(),
+        new Pose2d(2.2, 0.5, new Rotation2d(0)),
+        config);
+
+    var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+    SwerveControllerCommand toReef = new SwerveControllerCommand(
+        traj,
+        m_robotDrive::getPose,
+        DriveConstants.kDriveKinematics,
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
+    SwerveControllerCommand toStation = new SwerveControllerCommand(
+        traj,
+        m_robotDrive::getPose,
+        DriveConstants.kDriveKinematics,
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
+    SwerveControllerCommand backToReef = new SwerveControllerCommand(
+        traj,
+        m_robotDrive::getPose,
+        DriveConstants.kDriveKinematics,
+        new PIDController(AutoConstants.kPXController, 0, 0),
+        new PIDController(AutoConstants.kPYController, 0, 0),
+        thetaController,
+        m_robotDrive::setModuleStates,
+        m_robotDrive);
+
+    m_robotDrive.resetOdometry(traj.getInitialPose());
+
+    ReefAlignCommand align = new ReefAlignCommand(m_robotDrive, lime, 0.0612, -0.645, 0);
+    ScoringCommand score = new ScoringCommand(m_elevator, m_elevatorPivot, 650, 1.439);
+    ScoringCommand home = new ScoringCommand(m_elevator, m_elevatorPivot, 650, -1.39);
+    AutoWheels wheels = new AutoWheels(m_bowWheels);
+
+    return swerveControllerCommand.andThen(align.andThen(score.andThen(wheels.andThen(home.andThen(() -> m_robotDrive.drive(0, 0, 0, false))))));
+  }
 }
     

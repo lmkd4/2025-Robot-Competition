@@ -45,41 +45,53 @@ public class Vision extends SubsystemBase {
         return LimelightHelpers.getTX("");
     }
 
+    public double getTxHP() {
+        return LimelightHelpers.getTX("limelight-hp");
+    }
+
+    public double getTxReef() {
+        return LimelightHelpers.getTX("limelight-reef");
+    }
+
     public double getTy() {
         return LimelightHelpers.getTY("");
     }
 
-    public Pose3d getBotPose3d() {
-        return LimelightHelpers.getTargetPose3d_RobotSpace("");
+    public Pose3d getBotPose3dReef() {
+        return LimelightHelpers.getTargetPose3d_RobotSpace("limelight-reef");
+    }
+
+    public Pose3d getBotPose3dHP() {
+        return LimelightHelpers.getTargetPose3d_RobotSpace("limelight-HP");
     }
 
     public double getArea() {
         return LimelightHelpers.getTA(""); 
     }
 
-    public boolean hasValidTarget() {
-        return LimelightHelpers.getTV("");
+    public boolean hasValidTargetReef() {
+        return LimelightHelpers.getTV("limelight-reef");
     }
 
-    public void lightsOn() {
-        LimelightHelpers.setLEDMode_ForceOn("");
+    public void reefLightsOn() {
+        LimelightHelpers.setLEDMode_ForceOn("limelight-reef");
     }
-    
+
+    public void HPLightsOn() {
+        LimelightHelpers.setLEDMode_ForceOn("limelight-HP");
+    }
+
     public Command alignToTargetRight() {
         return run(() -> {
 
-            if (!hasValidTarget()) {
+            if (!hasValidTargetReef()) {
                 m_drive.drive(0, 0, 0, false);
                 return;
             }
 
         System.out.println("Test");
-        Pose3d pose3d = getBotPose3d();
-        
-        lightsOn();
-        // (right stide) x = 0.3, z = -0.5
+        Pose3d pose3d = getBotPose3dReef();
 
-        // (left side) x = 0.0, z = -0.5
         Translation3d target_point_tag_frame = new Translation3d(0.36, 0, -0.45);
         
         Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation()) ;
@@ -95,32 +107,11 @@ public class Vision extends SubsystemBase {
       });
     }
 
-    public Command coplanar() {
-        return run(() -> {
-            Pose3d pose3d = getBotPose3d();
-
-            Translation3d target_point_tag_frame = new Translation3d(0, 0, 0);
-
-            Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation());
-
-            double rot_cmd = pose3d.getRotation().getY() * .8;
-        });
-    }
-
-    public Command align() {
-        return Commands.sequence(
-            alignToTargetLeft().andThen(coplanar())
-        );
-    }
-
     public Command alignToTargetLeft() {
         return run(() -> {
 
         System.out.println("Test");
-        Pose3d pose3d = getBotPose3d();
-
-        // (right stide) x = 0.3, z = -0.5
-        // (left side) x = 0.0, z = -0.5
+        Pose3d pose3d = getBotPose3dReef();
 
         Translation3d target_point_tag_frame = new Translation3d(0.064, 0, -0.45);
         
@@ -138,10 +129,8 @@ public class Vision extends SubsystemBase {
     }
 
     public boolean aligned() {
-        Pose3d pose3d = getBotPose3d();
-
+        Pose3d pose3d = getBotPose3dReef();
         Translation3d target_point_tag_frame = new Translation3d(0.064, 0, -0.45);
-        
         Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation());
 
         return Math.hypot(target_point_robot_frame.getX(), target_point_robot_frame.getZ()) < .025;
@@ -151,20 +140,15 @@ public class Vision extends SubsystemBase {
         return run(() -> {
 
             System.out.println("Test");
-            Pose3d pose3d = getBotPose3d();
+            Pose3d pose3d = getBotPose3dReef();
     
             Translation3d target_point_tag_frame = new Translation3d(0, 0, -1.0);
             
             Translation3d target_point_robot_frame = target_point_tag_frame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation()) ;
-    
-            double x = pose3d.getX();
-            double y = pose3d.getZ();
-    
-            //double xTranslation = xTranslationController.calculate(-target_point_robot_frame.getX(), 0.00);
-            //double yTranslation = yTranslationController.calculate(-target_point_robot_frame.getZ(), 00.0);
+
             double rot_cmd = pose3d.getRotation().getY() * 0.30;
     
-            if (hasValidTarget()) {
+            if (hasValidTargetReef()) {
                 m_drive.drive(0, 0, rot_cmd, false);
             }
           });
@@ -173,7 +157,7 @@ public class Vision extends SubsystemBase {
 
     public Command displayValues() {
         return run(() -> {
-            Pose3d pose = getBotPose3d();
+            Pose3d pose = getBotPose3dReef();
 
             Translation3d target_point_tag_frame = new Translation3d(0.0, 0.0, -1.0);
         
@@ -227,7 +211,11 @@ public class Vision extends SubsystemBase {
 
     @Override
     public void periodic() {
-
-
+        SmartDashboard.putNumber("human player tx: ", getTxHP());
+        SmartDashboard.putNumber("reef tx: ", getTxReef());
+        
+        LimelightHelpers.setLEDMode_ForceOff("limelight-reef");
+        LimelightHelpers.setLEDMode_ForceOff("limelight-HP");
+        
     }
 }

@@ -21,12 +21,13 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
 
   // autonomous option strings
-  private static final String kDefaultAuto = "default";
-  private static final String kAuto1 = "leave community";
-  private static final String kAuto2 = "do nothing";
-  private static final String kAuto3 = "leave, score, find, score";
-  private static final String kAuto4 = "test limelight";
-  private static final String kAuto5 = "test elevator and wheels";
+  private static final String kDefaultAuto = "Leave";
+  private static final String kAuto1 = "Do Nothing";
+  private static final String kAuto2 = "Leave and Score (CENTER)";
+  private static final String kAuto3 = "Leave and Score (LEFT)";
+  private static final String kAuto4 = "Leave and Score (RIGHT)";
+  private static final String kAuto5 = "Two Coral (LEFT)";
+  private static final String kAuto6 = "Two Coral (RIGHT)";
   // autonomous stuff
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser <>();
@@ -38,12 +39,13 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putData("Auto Choices", m_chooser);
 
-    m_chooser.setDefaultOption("do nothing", kDefaultAuto);
-    m_chooser.addOption("leave", kAuto1);
-    m_chooser.addOption("leave and score", kAuto2);
-    m_chooser.addOption("FORWARD TO REEF", kAuto3);
-    m_chooser.addOption("test limelight", kAuto4);
-    m_chooser.addOption("test elevator and wheels", kAuto5);
+    m_chooser.setDefaultOption("Leave", kDefaultAuto);
+    m_chooser.addOption("Do Nothing", kAuto1);
+    m_chooser.addOption("Leave and Score (CENTER)", kAuto2);
+    m_chooser.addOption("Leave and Score (LEFT)", kAuto3);
+    m_chooser.addOption("Leave and Score (RIGHT)", kAuto4);
+    m_chooser.addOption("Two Coral (LEFT)", kAuto5);
+    m_chooser.addOption("Two Coral (RIGHT)", kAuto6);
   }
 
   @Override
@@ -63,7 +65,6 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
 
     m_robotContainer.homeSetpoints();
-
     m_autoSelected = m_chooser.getSelected();
 
     System.out.println("Auto Selected:" + m_autoSelected);
@@ -74,23 +75,19 @@ public class Robot extends TimedRobot {
         break;
 
       case kAuto1:
-        m_autonomousCommand = m_robotContainer.leaveCommunityCommand();
+        m_autonomousCommand = m_robotContainer.doNothing();
         break;
 
       case kAuto2:
-        m_autonomousCommand = m_robotContainer.leaveAndScoreCommand();
+        m_autonomousCommand = m_robotContainer.leaveAndScoreCommandCenter();
         break;
 
       case kAuto3:
-        m_autonomousCommand = m_robotContainer.forwardToReef();
+        m_autonomousCommand = m_robotContainer.leaveAndScoreCommandLeft();
         break;
 
       case kAuto4:
-        m_autonomousCommand = m_robotContainer.testLimelightCommand();
-        break;
-      
-      case kAuto5:
-        m_autonomousCommand = m_robotContainer.testFunctions();
+        m_autonomousCommand = m_robotContainer.leaveAndScoreCommandRight();
         break;
     }
         

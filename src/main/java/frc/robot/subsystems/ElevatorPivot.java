@@ -165,6 +165,5 @@ public class ElevatorPivot extends SubsystemBase {
         SmartDashboard.putNumber("Pivot Error", feedback.getPositionError());
 
         motor1.set(-finalOutput);
-
     }
 }
