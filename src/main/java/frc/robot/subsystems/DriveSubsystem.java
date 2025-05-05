@@ -101,35 +101,6 @@ public class DriveSubsystem extends SubsystemBase {
 
   public DriveSubsystem() {
 
-    m_gyro.reset();
-    RobotConfig config;
-    
-    try {
-        config = RobotConfig.fromGUISettings(); 
-    } catch (Exception e) {
-        e.printStackTrace();
-        config = new RobotConfig(0, 0, null, null); // Provide a default value or handle it properly
-    }
-    
-    // Configure AutoBuilder last
-    AutoBuilder.configure(
-      this::getPose, // Robot pose supplier
-      this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
-      this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-      (speeds, feedforwards) -> driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-      new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-          new PIDConstants(2.0, 0.0, 0.0), // translational PID
-          new PIDConstants(2.0, 0.0, 0.0) // rotational PID
-          ), config,
-          () -> {
-
-          // mirror path for both sides of field
-          var alliance = DriverStation.getAlliance();
-          if (alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-          }
-          return false;
-          }, this);
     }
     
 

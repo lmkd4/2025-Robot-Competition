@@ -29,6 +29,8 @@ public class Vision extends SubsystemBase {
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
+    private Blinkin led;
+
     private PIDController xTranslationController = new PIDController(kP, kI, kD);
     private PIDController yTranslationController = new PIDController(kP, kI, kD);
 
@@ -105,6 +107,24 @@ public class Vision extends SubsystemBase {
 
         m_drive.drive(xTranslation, yTranslation, rot_cmd, false);
       });
+    }
+
+    public void htc() {
+        Pose3d pose3d = getBotPose3dReef();
+
+        Translation3d targetInTagFrame = new Translation3d(0, 0, 0);
+
+        Translation3d targetInRobotFrame = targetInTagFrame.rotateBy(pose3d.getRotation()).plus(pose3d.getTranslation());
+
+        double xTrans = xTranslationController.calculate(-targetInTagFrame.getX(), 0);
+        double yTrans = yTranslationController.calculate(-targetInTagFrame.getZ(), 0);
+
+        // UNSCALED
+        double theta = pose3d.getRotation().getY();
+        
+        // gradient runs until limelight "0" is accomplished
+        led.setLED(xTrans);
+        m_drive.drive(xTrans, yTrans, theta, false);
     }
 
     public Command alignToTargetLeft() {
